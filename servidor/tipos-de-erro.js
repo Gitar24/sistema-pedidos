@@ -1,4 +1,5 @@
-// Erros "esperados", que viram respostas HTTP com mensagem clara.
+// Erros que a gente já espera que aconteçam. Cada um vira uma resposta HTTP com
+// uma mensagem que explica o que houve.
 
 class ErroValidacao extends Error {
   constructor(mensagem) {

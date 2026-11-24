@@ -1,25 +1,24 @@
-// #############################################################################
-// ###  ATENÇÃO: ESTE ARQUIVO DEPENDE DO MODELO DA IMPRESSORA                 ###
-// ###  Ajuste quando o modelo for confirmado (consulte o manual ESC/POS dele).###
-// #############################################################################
+// Atenção: este arquivo depende do modelo da impressora. Quando o modelo for
+// confirmado, confira estes valores no manual ESC/POS dele.
 //
-// Valores atuais: padrão Epson TM-T20 / compatíveis genéricas de 80 mm.
+// Por enquanto usamos o padrão da Epson TM-T20, que as genéricas de 80 mm costumam seguir.
 //
-// O que varia entre modelos:
-//   1. colunas: quantos caracteres cabem numa linha
-//        papel 80 mm -> normalmente 48 (fonte A) | papel 58 mm -> normalmente 32
-//   2. tabela de caracteres (acentos): o número da tabela no comando ESC t n muda
-//        de fabricante para fabricante. Epson: PC860 (português) = 3.
-//        Algumas genéricas não têm PC860; nesse caso use modoAcentos = 'remover'.
-//   3. comando de corte: algumas não têm guilhotina, outras usam outro comando.
-//   4. linhas de avanço antes do corte (distância entre a cabeça e a lâmina).
+// O que muda de um modelo para outro:
+//   1. colunas: quantos caracteres cabem numa linha.
+//        Papel de 80 mm costuma ter 48 (fonte A); o de 58 mm costuma ter 32.
+//   2. tabela de caracteres (os acentos): o número da tabela no comando ESC t n
+//        muda de fabricante para fabricante. Na Epson, PC860 (português) é a 3.
+//        Se a sua genérica não tiver PC860, use modoAcentos = 'remover'.
+//   3. comando de corte: algumas não têm guilhotina e outras usam outro comando.
+//   4. linhas de avanço antes do corte: depende da distância entre a cabeça de
+//        impressão e a lâmina.
 
 const ESC = 0x1b;
 const GS = 0x1d;
 
 const modoAcentos = 'pc860'; // 'pc860' | 'remover'
 
-// Mapa Unicode -> PC860 (Português) para os caracteres acentuados usuais.
+// De cada letra acentuada para o byte dela na tabela PC860 (português).
 const PC860 = {
   'Ç': 0x80, 'ü': 0x81, 'é': 0x82, 'â': 0x83, 'ã': 0x84, 'à': 0x85, 'Á': 0x86, 'ç': 0x87,
   'ê': 0x88, 'Ê': 0x89, 'è': 0x8a, 'Í': 0x8b, 'Ô': 0x8c, 'ì': 0x8d, 'Ã': 0x8e, 'Â': 0x8f,
@@ -49,7 +48,7 @@ const PERFIL_DA_IMPRESSORA = {
   comandoTabelaCaracteres: modoAcentos === 'pc860' ? [ESC, 0x74, 3] : [], // ESC t 3 (Epson: PC860)
   codificarTexto,
   linhasAntesDoCorte: 4,
-  comandoCorte: [GS, 0x56, 0x42, 0x00], // GS V 66 0: corte parcial com avanço. Sem guilhotina: []
+  comandoCorte: [GS, 0x56, 0x42, 0x00], // GS V 66 0: corte parcial, com avanço do papel. Sem guilhotina, deixe []
 };
 
 module.exports = { PERFIL_DA_IMPRESSORA, PC860 };

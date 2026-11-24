@@ -1,8 +1,6 @@
-// =============================================================================
-// ROTAS DO CARDÁPIO
-//   GET  /api/cardapio   -> lista os itens (nome e preço)
-//   POST /api/cardapio   -> cadastra um item  { "nome": "Tapioca", "preco": 14.90 }
-// =============================================================================
+// Rotas do cardápio:
+//   GET  /api/cardapio   lista os itens, com nome e preço
+//   POST /api/cardapio   cadastra um item, ex.: { "nome": "Tapioca", "preco": 14.90 }
 const express = require('express');
 const { validarNovoItem } = require('../validacao');
 

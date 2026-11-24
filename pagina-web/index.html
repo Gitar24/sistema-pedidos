@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pedidos</title>
   <link rel="stylesheet" href="estilo.css">
-  <!-- Página única com 3 abas: Novo pedido, Pedidos recentes e Cadastrar item -->
+  <!-- Uma página só, com três abas: Novo pedido, Pedidos recentes e Cadastrar item -->
 </head>
 <body>
   <header>
@@ -13,14 +13,14 @@
     <span id="estado-servidor" class="estado-servidor" title="Conexão com o servidor">Conectando...</span>
   </header>
 
-  <!-- Faixa de aviso (sucesso, aviso, erro, conexão). Fica fixa no topo e tem botão de fechar. -->
+  <!-- Faixa de aviso (sucesso, aviso, erro ou conexão). Fica fixa no topo e dá para fechar. -->
   <div id="mensagem" class="mensagem oculto" role="alert">
     <span id="mensagem-texto"></span>
     <button id="mensagem-fechar" class="fechar" aria-label="Fechar aviso">&times;</button>
   </div>
 
-  <!-- Abas: cada tela fica separada para ninguém clicar em Cancelar/Reimprimir sem querer
-       enquanto atende. Quem troca de aba é js/abas.js. -->
+  <!-- Abas: cada tela fica separada para ninguém clicar em Cancelar ou Reimprimir sem
+       querer enquanto atende. Quem troca de aba é o js/abas.js. -->
   <nav class="abas" role="tablist" aria-label="Telas do sistema">
     <button class="aba ativa" role="tab" id="aba-novo" data-painel="painel-novo" aria-selected="true">Novo pedido</button>
     <button class="aba" role="tab" id="aba-recentes" data-painel="painel-recentes" aria-selected="false">
@@ -30,7 +30,7 @@
   </nav>
 
   <main>
-    <!-- ABA 1: montar e registrar um pedido -->
+    <!-- Aba 1: montar e registrar um pedido -->
     <div class="painel painel-duplo" id="painel-novo" role="tabpanel" aria-labelledby="aba-novo">
       <section class="cartao" id="cartao-cardapio">
         <h2><span class="passo">1</span> Escolha os itens</h2>
@@ -56,7 +56,7 @@
       </section>
     </div>
 
-    <!-- ABA 2: histórico, reimprimir, cancelar -->
+    <!-- Aba 2: histórico, reimprimir e cancelar -->
     <div class="painel oculto" id="painel-recentes" role="tabpanel" aria-labelledby="aba-recentes">
       <section class="cartao" id="cartao-recentes">
         <div class="titulo-com-acao">
@@ -71,7 +71,7 @@
       </section>
     </div>
 
-    <!-- ABA 3: cadastrar item novo no cardápio -->
+    <!-- Aba 3: cadastrar um item novo no cardápio -->
     <div class="painel oculto" id="painel-cadastro" role="tabpanel" aria-labelledby="aba-cadastro">
       <section class="cartao" id="cartao-cadastro">
         <h2>Cadastrar item novo no cardápio</h2>
@@ -84,14 +84,14 @@
     </div>
   </main>
 
-  <!-- A ordem importa: ferramentas primeiro, iniciar-pagina por último -->
+  <!-- A ordem importa: ferramentas vem primeiro e iniciar-pagina por último -->
   <script src="js/ferramentas.js"></script>
   <script src="js/cardapio.js"></script>
   <script src="js/pedido-atual.js"></script>
   <script src="js/pedidos-recentes.js"></script>
   <script src="js/cadastro-de-item.js"></script>
   <script src="js/abas.js"></script>
-  <script src="js/ver-nota-temporario.js"></script> <!-- TEMPORÁRIO -->
+  <script src="js/ver-nota-temporario.js"></script> <!-- temporário -->
   <script src="js/iniciar-pagina.js"></script>
 </body>
 </html>

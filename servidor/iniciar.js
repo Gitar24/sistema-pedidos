@@ -1,7 +1,5 @@
-// =============================================================================
-// PONTO DE PARTIDA — é este arquivo que roda com "npm start".
-// Abre o banco, prepara a impressora e liga o servidor na rede local.
-// =============================================================================
+// Este é o arquivo que o "npm start" executa. Ele abre o banco, prepara a
+// impressora e liga o servidor na rede local.
 const os = require('os');
 const config = require('./configuracoes');
 const { abrirBanco } = require('./banco-de-dados/conexao');

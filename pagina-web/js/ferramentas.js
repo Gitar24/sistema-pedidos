@@ -1,11 +1,9 @@
-// =============================================================================
-// FERRAMENTAS — funções usadas por todas as partes da página:
-//   falarComServidor()  -> toda comunicação com o servidor passa por aqui
-//   mostrarMensagem()   -> faixa colorida de sucesso / aviso / erro / conexão
-//   emReais()           -> 1250 centavos vira "R$ 12,50"
-// =============================================================================
+// Funções que todas as outras partes da página usam:
+//   falarComServidor()   toda conversa com o servidor passa por aqui
+//   mostrarMensagem()    a faixa colorida de sucesso, aviso, erro ou conexão
+//   emReais()            transforma 1250 centavos em "R$ 12,50"
 
-const TEMPO_LIMITE_MS = 10000; // desiste de esperar o servidor depois de 10 segundos
+const TEMPO_LIMITE_MS = 10000; // depois de 10 segundos sem resposta, desistimos de esperar
 
 class ErroDeConexao extends Error {}
 
@@ -15,8 +13,8 @@ function emReais(centavos) {
 
 let relogioDoAviso;
 
-// Faixa fixa no topo. Sucesso some sozinho depois de alguns segundos;
-// aviso e erro ficam até o funcionário fechar, para ninguém perder a informação.
+// A faixa fixa no topo. A de sucesso some sozinha depois de alguns segundos;
+// a de aviso e a de erro ficam até o funcionário fechar, para ninguém perder a informação.
 function mostrarMensagem(texto, tipo) { // tipo: 'sucesso' | 'aviso' | 'erro' | 'conexao'
   const faixa = document.getElementById('mensagem');
   document.getElementById('mensagem-texto').textContent = texto;
@@ -29,22 +27,24 @@ function fecharMensagem() {
   document.getElementById('mensagem').classList.add('oculto');
 }
 
-// Indicador no topo da página: mostra se o servidor está respondendo.
+// O selo no topo da página, que mostra se o servidor está respondendo.
 function mostrarEstadoDoServidor(conectado) {
   const selo = document.getElementById('estado-servidor');
   selo.textContent = conectado ? 'Servidor conectado' : 'Sem conexão com o servidor';
   selo.className = 'estado-servidor ' + (conectado ? 'ok' : 'sem-conexao');
 }
 
-// Mostra a mensagem certa para uma falha: problema de conexão ou erro explicado pelo servidor.
+// Escolhe a mensagem certa para uma falha: ou a conexão caiu, ou o servidor
+// respondeu explicando o erro.
 function mostrarFalha(erro, contexto) {
   if (erro instanceof ErroDeConexao) mostrarMensagem(erro.message, 'conexao');
   else mostrarMensagem(`${contexto}: ${erro.message}`, 'erro');
 }
 
-// Nunca deixa a tela travada: se a rede cair ou o servidor demorar, lança ErroDeConexao.
-// Se o servidor responder com erro, lança Error com a mensagem que ele mandou.
-// (503 = impressora indisponível na reimpressão: não é erro da tela, a resposta traz o aviso.)
+// Não deixa a tela travada: se a rede cair ou o servidor demorar, lança ErroDeConexao.
+// Se o servidor responder com erro, lança um Error com a mensagem que ele mandou.
+// A exceção é o 503 (impressora indisponível numa reimpressão): isso não é erro
+// da tela, e a resposta já traz o aviso para mostrar.
 async function falarComServidor(endereco, opcoes = {}) {
   const cancelamento = new AbortController();
   const relogio = setTimeout(() => cancelamento.abort(), TEMPO_LIMITE_MS);
@@ -64,7 +64,7 @@ async function falarComServidor(endereco, opcoes = {}) {
 
   mostrarEstadoDoServidor(true);
   let dados = {};
-  try { dados = await resposta.json(); } catch { /* resposta sem conteúdo */ }
+  try { dados = await resposta.json(); } catch { /* a resposta veio sem corpo, tudo bem */ }
   if (!resposta.ok && resposta.status !== 503) {
     throw new Error(dados.erro || `O servidor respondeu com erro (${resposta.status}).`);
   }

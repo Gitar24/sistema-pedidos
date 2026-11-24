@@ -1,4 +1,4 @@
-// Erro usado quando a impressora não responde (desligada, sem papel, fora da rede...).
+// Usado quando a impressora não responde: desligada, sem papel, fora da rede...
 class ErroImpressora extends Error {
   constructor(mensagem, causa) {
     super(mensagem);

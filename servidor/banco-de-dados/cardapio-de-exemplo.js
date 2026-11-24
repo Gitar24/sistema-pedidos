@@ -1,4 +1,4 @@
-// Cardápio fictício do protótipo. Carregado só quando o banco está vazio.
+// Cardápio de mentirinha para o protótipo. Só entra quando o banco está vazio.
 const CARDAPIO_DE_EXEMPLO = [
   { nome: 'Pão de queijo', precoCentavos: 650 },
   { nome: 'Coxinha', precoCentavos: 800 },

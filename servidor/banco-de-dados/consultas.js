@@ -1,5 +1,5 @@
-// Consultas e gravações no banco. Erros de gravação viram ErroBanco, para que a
-// tela nunca confirme algo que não foi salvo.
+// Tudo o que o sistema lê ou grava no banco passa por aqui. Se uma gravação falhar,
+// o erro vira ErroBanco, para a tela nunca dizer que salvou o que não foi salvo.
 const { emTransacao } = require('./conexao');
 const { ErroValidacao, ErroBanco, ErroNaoEncontrado } = require('../tipos-de-erro');
 
@@ -22,7 +22,8 @@ function criarConsultas(db) {
     }
   }
 
-  // Grava o pedido e seus itens numa única transação: ou grava tudo, ou nada.
+  // O pedido e os itens dele são gravados juntos, numa transação só: ou entra tudo,
+  // ou não entra nada.
   function criarPedido(itensSolicitados) {
     const buscarItem = db.prepare('SELECT id, nome, preco_centavos AS precoCentavos FROM itens_cardapio WHERE id = ?');
 
@@ -55,7 +56,7 @@ function criarConsultas(db) {
 
   function buscarPedido(id) {
     const pedido = db.prepare(
-      // O status mostrado ao usuário é "cancelado" quando há data de cancelamento.
+      // Se existe data de cancelamento, quem vê o pedido enxerga o status "cancelado".
       `SELECT id,
               CASE WHEN cancelado_em IS NOT NULL THEN 'cancelado' ELSE status END AS status,
               total_centavos AS totalCentavos, criado_em AS criadoEm,
@@ -87,7 +88,8 @@ function criarConsultas(db) {
     ).run(id);
   }
 
-  // Cancela o pedido (o cliente desistiu). Não apaga nada: guarda a data e mantém o histórico.
+  // O cliente desistiu. Não apagamos o pedido: só anotamos a data do cancelamento,
+  // para ele continuar aparecendo no histórico.
   function cancelarPedido(id) {
     const pedido = buscarPedido(id);
     if (!pedido) throw new ErroNaoEncontrado(`O pedido #${id} não existe.`);

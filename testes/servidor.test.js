@@ -11,7 +11,7 @@ const { abrirBanco } = require('../servidor/banco-de-dados/conexao');
 const { criarApp } = require('../servidor/aplicacao');
 const { ErroImpressora } = require('../servidor/impressao/impressora');
 
-// Impressora falsa: controla se "está ligada" e guarda o que recebeu.
+// Uma impressora de mentirinha: dá para ligar e desligar, e ela guarda o que recebeu.
 const impressoraFalsa = {
   ligada: true,
   impressos: [],
@@ -159,7 +159,7 @@ test('rota inexistente da API dá 404 em JSON', async () => {
   assert.strictEqual(status, 404);
 });
 
-// ---------- Personalização do item (observação) ----------
+// Observação do item (o pedido do cliente, como "sem verduras")
 
 test('pedido com observação guarda o texto limpo e devolve na resposta', async () => {
   const { status, dados } = await req('POST', '/api/pedidos', {
@@ -207,7 +207,7 @@ test('banco antigo (sem coluna observacao) é atualizado sem perder pedidos', ()
   atualizado.close();
 });
 
-// ---------- Cancelamento de pedido ----------
+// Cancelamento de pedido
 
 test('cancelar pedido não impresso: fica no histórico como cancelado e não pode ser reimpresso', async () => {
   impressoraFalsa.ligada = false;

@@ -1,21 +1,23 @@
-// #############################################################################
-// ###  ENVIO PELA REDE — depende de como a impressora está ligada            ###
-// #############################################################################
-// Abre uma conexão TCP "crua" (RAW, normalmente na porta 9100) e envia o papel.
-// Serve para:
-//   - impressora com Wi-Fi/placa de rede (a porta 9100 é o padrão de quase todas);
-//   - impressora USB ligada a um notebook que roda notebook-da-impressora/agente.js.
-// Se a impressora for ligada de outro jeito (ex.: cabo serial no servidor),
-// crie outro arquivo nesta pasta com a mesma função enviar() e registre em ../impressora.js.
+// Envio pela rede. O que vale aqui depende de como a impressora está ligada.
 //
-// Como percebemos que a impressora está desligada:
-//   - notebook/impressora desligados ou fora da rede -> conexão recusada ou demora demais;
-//   - agente ligado mas impressora USB desligada -> o agente derruba a conexão.
+// Abre uma conexão TCP "crua" (RAW, quase sempre na porta 9100) e manda o papel.
+// Serve para dois casos:
+//   - impressora com Wi-Fi ou placa de rede (a 9100 é a porta padrão de quase todas);
+//   - impressora USB ligada a um notebook que roda notebook-da-impressora/agente.js.
+// Se a sua impressora estiver ligada de outro jeito (um cabo serial no servidor,
+// por exemplo), crie outro arquivo nesta pasta com a mesma função enviar() e
+// registre ele em ../impressora.js.
+//
+// Como a gente descobre que a impressora está desligada:
+//   - notebook ou impressora desligados, ou fora da rede: a conexão é recusada
+//     ou demora demais;
+//   - agente no ar mas impressora USB desligada: o agente derruba a conexão.
 const net = require('net');
 const { ErroImpressora } = require('../erro-de-impressao');
 
-// Depois de enviar, espera um pouco por um eventual erro antes de considerar impresso.
-// Muitas impressoras de rede não fecham a conexão, então não dá para esperar o fechamento.
+// Depois de enviar, esperamos um pouquinho para ver se aparece algum erro antes de
+// dar o pedido como impresso. Muita impressora de rede nunca fecha a conexão, então
+// não dá para esperar por esse fechamento.
 const ESPERA_POR_ERRO_MS = 800;
 
 function enviar(papel, config) {

@@ -1,15 +1,13 @@
-// =============================================================================
-// CADASTRO DE ITEM — formulário para incluir um item novo no cardápio.
-// Quem decide se os dados são válidos é o servidor; a tela só mostra a resposta.
-// =============================================================================
+// Formulário para cadastrar um item novo no cardápio. Quem decide se os dados
+// servem é o servidor; a tela só mostra o que ele responder.
 
 async function cadastrarItem(evento) {
   evento.preventDefault();
   const formulario = evento.target;
   const botao = formulario.querySelector('button');
 
-  // Aceita "12,50" ou "12.50". Se não for número, manda o texto mesmo:
-  // o servidor recusa e explica o motivo.
+  // Aceita "12,50" ou "12.50". Se nem for número, manda o texto assim mesmo:
+  // o servidor recusa e explica por quê.
   const precoDigitado = formulario.preco.value.trim().replace(',', '.');
   const preco = precoDigitado !== '' && !Number.isNaN(Number(precoDigitado)) ? Number(precoDigitado) : formulario.preco.value;
 
@@ -21,7 +19,7 @@ async function cadastrarItem(evento) {
     });
     mostrarMensagem(dados.mensagem, 'sucesso');
     formulario.reset();
-    carregarCardapio(); // em cardapio.js
+    carregarCardapio(); // está em cardapio.js
   } catch (erro) {
     mostrarFalha(erro, 'Item não cadastrado');
   } finally {

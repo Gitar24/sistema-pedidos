@@ -1,7 +1,5 @@
-// =============================================================================
-// INICIAR PÁGINA — liga os botões e carrega os dados quando a página abre.
-// (Carregado por último no index.html, depois de todos os outros arquivos.)
-// =============================================================================
+// Liga os botões e carrega os dados assim que a página abre. É o último script do
+// index.html, porque precisa de todos os outros já carregados.
 
 document.getElementById('botao-registrar').addEventListener('click', registrarPedido);
 document.getElementById('botao-limpar').addEventListener('click', limparPedido);
@@ -12,4 +10,4 @@ document.getElementById('form-item').addEventListener('submit', cadastrarItem);
 carregarCardapio();
 carregarPedidosRecentes();
 desenharPedidoAtual();
-mostrarAba(location.hash.slice(1)); // abre na aba do endereço (#recentes) ou em "Novo pedido"
+mostrarAba(location.hash.slice(1)); // abre na aba que está no endereço (#recentes) ou, se não tiver, em "Novo pedido"

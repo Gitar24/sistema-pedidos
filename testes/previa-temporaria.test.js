@@ -1,4 +1,4 @@
-// TEMPORÁRIO — apague junto com a prévia da nota.
+// Temporário: apague junto com a prévia da nota.
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { montarPapelDoPedido } = require('../servidor/impressao/montar-papel');

@@ -1,11 +1,12 @@
 # Notebook da impressora
 
-Esta pasta vai para o **notebook onde a impressora está ligada por USB**. Ela não é usada no servidor.
+Esta pasta é para o **notebook onde a impressora está ligada por USB**. No servidor ela não serve para nada.
 
-1. Instale o Node.js nesse notebook (não precisa de `npm install`).
-2. Copie o `agente.js` para ele e rode `node agente.js`.
+1. Instale o Node.js nesse notebook. Não precisa rodar `npm install`.
+2. Copie o `agente.js` para lá e rode `node agente.js`.
 3. No servidor, inicie com `IMPRESSORA_MODO=rede IMPRESSORA_ENDERECO=<IP do notebook> npm start`.
 
-Qual é o "dispositivo" da impressora (Linux, Windows ou serial) está explicado no topo do `agente.js`.
-Se a impressora tiver Wi-Fi própria, esta pasta não é necessária: aponte `IMPRESSORA_ENDERECO`
+Para saber qual é o "dispositivo" da impressora (Linux, Windows ou serial), veja o comentário no topo do `agente.js`.
+
+Se a sua impressora tem Wi-Fi própria, nem precisa desta pasta: aponte o `IMPRESSORA_ENDERECO`
 direto para o IP da impressora.

@@ -1,19 +1,16 @@
-// =============================================================================
-// APLICAÇÃO — junta as peças do servidor web:
-//   1. entrega a página (pasta pagina-web/)
-//   2. liga as rotas da API (pasta rotas/)
-//   3. transforma qualquer erro numa resposta com mensagem clara
-// =============================================================================
+// Aqui as peças do servidor web se encontram: a página que o navegador abre
+// (pasta pagina-web/), as rotas da API (pasta rotas/) e, no fim, o tratador que
+// transforma qualquer erro numa resposta com uma mensagem que dá para entender.
 const path = require('path');
 const express = require('express');
 const { criarConsultas } = require('./banco-de-dados/consultas');
 const { rotasCardapio } = require('./rotas/cardapio');
 const { rotasPedidos } = require('./rotas/pedidos');
-const { rotasPreviaTemporaria } = require('./rotas/previa-temporaria'); // TEMPORÁRIO: prévia da nota
+const { rotasPreviaTemporaria } = require('./rotas/previa-temporaria'); // temporário: prévia da nota
 const { registrarErro } = require('./registro-de-erros');
 
 function criarApp({ db, impressora }) {
-  const app = express(); // Express 5: erros em rotas async chegam ao tratador central
+  const app = express(); // No Express 5, erro em rota async já cai no tratador lá embaixo
   const consultas = criarConsultas(db);
 
   app.use(express.json({ limit: '50kb' }));
@@ -21,13 +18,15 @@ function criarApp({ db, impressora }) {
 
   app.use('/api/cardapio', rotasCardapio(consultas));
   app.use('/api/pedidos', rotasPedidos(consultas, impressora));
-  app.use('/previa-nota', rotasPreviaTemporaria(consultas)); // TEMPORÁRIO: prévia da nota
+  app.use('/previa-nota', rotasPreviaTemporaria(consultas)); // temporário: prévia da nota
 
   app.use('/api', (req, res) => {
     res.status(404).json({ erro: 'Endereço da API não encontrado.' });
   });
 
-  // Tratador central de erros.
+  // Todo erro que as rotas deixarem escapar chega aqui. Os que a gente já esperava
+  // (JSON torto, validação, pedido inexistente) viram uma mensagem curta para a tela;
+  // o resto vai para o log e a tela só recebe um aviso genérico.
   // eslint-disable-next-line no-unused-vars
   app.use((erro, req, res, next) => {
     if (erro.type === 'entity.parse.failed') {

@@ -1,20 +1,18 @@
-// =============================================================================
-// ENVIO SIMULADO — usado no protótipo, sem impressora física.
-// Em vez de imprimir, grava na pasta impressoes-simuladas/:
-//   pedido-N-....bin  -> os bytes ESC/POS exatos que iriam para a impressora
-//   pedido-N-....txt  -> uma prévia legível do papelzinho
-// =============================================================================
+// Envio simulado, para o protótipo funcionar sem impressora de verdade.
+// Em vez de imprimir, salva dois arquivos na pasta impressoes-simuladas/:
+//   pedido-N-....bin   os bytes ESC/POS exatos que iriam para a impressora
+//   pedido-N-....txt   uma prévia em texto do papelzinho, para ler
 const fs = require('fs/promises');
 const path = require('path');
 const { ErroImpressora } = require('../erro-de-impressao');
 
-// Letras acentuadas da tabela PC860, para a prévia em texto mostrar os acentos.
+// As letras acentuadas da tabela PC860, para a prévia em texto mostrar os acentos.
 const PC860_PARA_TEXTO = {
   0x80: 'Ç', 0x82: 'é', 0x83: 'â', 0x84: 'ã', 0x85: 'à', 0x87: 'ç', 0x88: 'ê',
   0x8e: 'Ã', 0x90: 'É', 0x93: 'ô', 0x94: 'õ', 0xa0: 'á', 0xa1: 'í', 0xa2: 'ó', 0xa3: 'ú',
 };
 
-// Converte os bytes ESC/POS em texto legível, pulando os comandos.
+// Transforma os bytes ESC/POS em texto que dá para ler, pulando os comandos.
 function previaLegivel(bytes) {
   let texto = '';
   for (let i = 0; i < bytes.length; i++) {

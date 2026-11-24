@@ -1,6 +1,6 @@
-// Comandos ESC/POS padrão (documentação Epson). Funcionam na grande maioria das
-// impressoras térmicas compatíveis. O que costuma variar entre modelos fica em
-// perfil-impressora.js, e não aqui.
+// Comandos ESC/POS padrão, os mesmos da documentação da Epson. Funcionam na
+// grande maioria das impressoras térmicas. O que muda de um modelo para outro
+// fica em perfil-da-impressora.js, não aqui.
 
 const ESC = 0x1b;
 const GS = 0x1d;
@@ -17,7 +17,7 @@ const comandos = {
   avancarLinhas: (n) => [ESC, 0x64, n],             // ESC d n
 };
 
-// Monta um Buffer a partir de uma sequência de comandos e textos.
+// Vai juntando comandos e textos, na ordem, até formar o Buffer que a impressora lê.
 class PapelEscPos {
   constructor(perfil) {
     this.perfil = perfil;
@@ -44,7 +44,8 @@ class PapelEscPos {
     return this.linha(caractere.repeat(this.perfil.colunas));
   }
 
-  // Texto à esquerda e à direita na mesma linha (ex.: "2x Coxinha      R$ 16,00")
+  // Escreve um texto colado à esquerda e outro colado à direita na mesma linha,
+  // por exemplo "2x Coxinha      R$ 16,00". Se o da esquerda não couber, é cortado.
   colunas(esquerda, direita, largura = this.perfil.colunas) {
     const espaco = largura - direita.length - 1;
     const esq = esquerda.length > espaco ? esquerda.slice(0, espaco) : esquerda;

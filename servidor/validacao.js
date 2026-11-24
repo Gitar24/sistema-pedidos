@@ -1,5 +1,5 @@
-// Validação dos dados recebidos. Qualquer problema vira ErroValidacao (HTTP 400)
-// com uma mensagem que explica o motivo.
+// Confere os dados que chegam da tela. Se algo estiver errado, lança um
+// ErroValidacao (HTTP 400) dizendo o motivo.
 const { ErroValidacao } = require('./tipos-de-erro');
 
 const PRECO_MAXIMO = 100000;  // R$ 100.000,00
@@ -29,12 +29,13 @@ function validarNovoItem(corpo) {
   return { nome, precoCentavos };
 }
 
-// Observação é opcional: personalização do item, ex.: "sem verduras", "queijo extra".
+// A observação é opcional. É o pedido do cliente para aquele item, como
+// "sem verduras" ou "queijo extra".
 function validarObservacao(valor, posicao) {
   if (valor === undefined || valor === null) return '';
   if (typeof valor !== 'string') throw new ErroValidacao(`${posicao}: a observação deve ser um texto.`);
   const texto = valor
-    .replace(/[\u0000-\u001f\u007f]+/g, ' ')   // quebras de linha e caracteres de controle viram espaço
+    .replace(/[\u0000-\u001f\u007f]+/g, ' ')   // quebra de linha e caracteres invisíveis viram espaço
     .replace(/\s+/g, ' ')
     .trim();
   if (texto.length > OBSERVACAO_MAXIMA) {

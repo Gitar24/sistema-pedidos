@@ -1,6 +1,4 @@
-// =============================================================================
-// CARDÁPIO — mostra os itens com nome e preço e o botão "Adicionar".
-// =============================================================================
+// Mostra os itens do cardápio, com nome, preço e o botão "Adicionar".
 
 let itensDoCardapio = [];
 
@@ -26,7 +24,7 @@ function desenharCardapio() {
     const botao = document.createElement('button');
     botao.textContent = 'Adicionar';
     botao.className = 'btn btn-adicionar';
-    botao.addEventListener('click', () => adicionarAoPedido(item)); // em pedido-atual.js
+    botao.addEventListener('click', () => adicionarAoPedido(item)); // está em pedido-atual.js
     linha.insertCell().append(botao);
   }
   document.getElementById('cardapio-vazio').classList.toggle('oculto', itensDoCardapio.length > 0);

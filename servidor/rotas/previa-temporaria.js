@@ -1,8 +1,6 @@
-// =============================================================================
-// ⚠ TEMPORÁRIO — rota da prévia da nota (veja como remover em
-// servidor/impressao/previa-temporaria.js).
-//   GET /previa-nota/:id  -> página HTML com o recibo do pedido, sem imprimir nada
-// =============================================================================
+// Temporário: rota da prévia da nota. O passo a passo para remover está em
+// servidor/impressao/previa-temporaria.js.
+//   GET /previa-nota/:id   mostra o recibo do pedido numa página, sem imprimir nada
 const express = require('express');
 const { montarPapelDoPedido } = require('../impressao/montar-papel');
 const { PERFIL_DA_IMPRESSORA } = require('../impressao/ajustar-conforme-modelo/perfil-da-impressora');

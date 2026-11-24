@@ -1,10 +1,9 @@
-// =============================================================================
-// ABAS — troca entre "Novo pedido", "Pedidos recentes" e "Cadastrar item".
+// Troca entre as abas "Novo pedido", "Pedidos recentes" e "Cadastrar item".
 //
-// Por que abas? Os botões Cancelar e Reimprimir ficam numa tela separada, para ninguém
-// clicar neles sem querer enquanto monta um pedido. O pedido em andamento NÃO se perde
-// ao trocar de aba. A aba atual fica no endereço (#recentes), então F5 volta para ela.
-// =============================================================================
+// Por que abas? Para os botões Cancelar e Reimprimir ficarem numa tela à parte e
+// ninguém clicar neles sem querer enquanto monta um pedido. Trocar de aba não
+// perde o pedido em andamento. A aba atual vai para o endereço (#recentes), então
+// apertar F5 volta para a mesma aba.
 
 const ABAS = { novo: 'aba-novo', recentes: 'aba-recentes', cadastro: 'aba-cadastro' };
 
@@ -17,12 +16,12 @@ function mostrarAba(nome) {
     aba.setAttribute('aria-selected', String(ativa));
     document.getElementById(aba.dataset.painel).classList.toggle('oculto', !ativa);
   }
-  try { history.replaceState(null, '', nome === 'novo' ? location.pathname : '#' + nome); } catch { /* sem histórico: tudo bem */ }
-  // Ao abrir a lista, mostra sempre a situação mais recente dos pedidos.
+  try { history.replaceState(null, '', nome === 'novo' ? location.pathname : '#' + nome); } catch { /* se o navegador não deixar mexer no endereço, tudo bem */ }
+  // Ao abrir a lista, recarrega para mostrar a situação mais recente dos pedidos.
   if (nome === 'recentes') carregarPedidosRecentes();
 }
 
-// Bolinha vermelha na aba "Pedidos recentes": quantos pedidos ainda não foram impressos.
+// A bolinha vermelha na aba "Pedidos recentes" diz quantos pedidos ainda estão sem imprimir.
 function mostrarContagemDeNaoImpressos(pedidos) {
   const faltam = pedidos.filter((p) => p.status === 'nao_impresso').length;
   const bolinha = document.getElementById('contagem-nao-impressos');

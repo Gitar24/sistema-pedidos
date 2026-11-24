@@ -1,5 +1,6 @@
-// Acesso ao SQLite (arquivo único). Usa o módulo nativo node:sqlite (Node >= 22.13),
-// então não há dependência nativa para compilar na máquina do estabelecimento.
+// O banco é um SQLite, ou seja, um arquivo só. Usamos o módulo node:sqlite que já
+// vem no Node (22.13 ou mais novo), assim não tem nada para compilar nem instalar
+// na máquina do estabelecimento.
 const fs = require('fs');
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
@@ -20,11 +21,11 @@ const ESQUEMA = `
     total_centavos INTEGER NOT NULL CHECK (total_centavos >= 0),
     criado_em   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
     impresso_em TEXT,
-    cancelado_em TEXT   -- preenchido quando o cliente desiste; o pedido continua no histórico
+    cancelado_em TEXT   -- só é preenchido se o cliente desistir; o pedido fica no histórico
   );
 
-  -- Nome e preço são copiados no momento do pedido: se o cardápio mudar depois,
-  -- o pedido continua mostrando o que foi realmente vendido.
+  -- O nome e o preço são copiados para cá na hora do pedido. Assim, se o cardápio
+  -- mudar depois, o pedido antigo continua mostrando o que foi vendido de verdade.
   CREATE TABLE IF NOT EXISTS itens_pedido (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     pedido_id      INTEGER NOT NULL REFERENCES pedidos(id),
@@ -32,7 +33,7 @@ const ESQUEMA = `
     nome           TEXT    NOT NULL,
     preco_centavos INTEGER NOT NULL CHECK (preco_centavos >= 0),
     quantidade     INTEGER NOT NULL CHECK (quantidade > 0),
-    observacao     TEXT    NOT NULL DEFAULT ''  -- personalização: "sem verduras", "queijo extra"...
+    observacao     TEXT    NOT NULL DEFAULT ''  -- pedidos do cliente, como "sem verduras" ou "queijo extra"
   );
 
   CREATE INDEX IF NOT EXISTS idx_itens_pedido_pedido ON itens_pedido(pedido_id);
@@ -45,7 +46,7 @@ function abrirBanco(arquivo) {
   }
   const db = new DatabaseSync(arquivo);
   db.exec('PRAGMA foreign_keys = ON;');
-  db.exec('PRAGMA journal_mode = WAL;');   // leitura e escrita simultâneas de vários notebooks
+  db.exec('PRAGMA journal_mode = WAL;');   // vários notebooks podem ler e gravar ao mesmo tempo
   db.exec('PRAGMA busy_timeout = 5000;');
   db.exec(ESQUEMA);
   atualizarBancoAntigo(db);
@@ -53,20 +54,21 @@ function abrirBanco(arquivo) {
   return db;
 }
 
-// Bancos criados antes de certas funções não têm algumas colunas.
-// Esta função as acrescenta sem apagar nenhum pedido existente.
+// Um banco criado numa versão antiga do sistema pode estar sem algumas colunas.
+// Aqui a gente acrescenta o que falta, sem mexer em nenhum pedido que já existe.
 function atualizarBancoAntigo(db) {
   const colunasDe = (tabela) => db.prepare(`PRAGMA table_info(${tabela})`).all().map((c) => c.name);
 
-  if (!colunasDe('itens_pedido').includes('observacao')) {   // função "personalizar item"
+  if (!colunasDe('itens_pedido').includes('observacao')) {   // veio com o "personalizar item"
     db.exec("ALTER TABLE itens_pedido ADD COLUMN observacao TEXT NOT NULL DEFAULT ''");
   }
-  if (!colunasDe('pedidos').includes('cancelado_em')) {      // função "cancelar pedido"
+  if (!colunasDe('pedidos').includes('cancelado_em')) {      // veio com o "cancelar pedido"
     db.exec('ALTER TABLE pedidos ADD COLUMN cancelado_em TEXT');
   }
 }
 
-// Protótipo: se o cardápio estiver vazio, carrega itens fictícios.
+// Por enquanto, é um protótipo: se o cardápio estiver vazio, entram alguns itens
+// de mentirinha para dar para testar a tela.
 function carregarCardapioDeExemplo(db) {
   const { total } = db.prepare('SELECT COUNT(*) AS total FROM itens_cardapio').get();
   if (total > 0) return;
@@ -81,7 +83,8 @@ function carregarCardapioDeExemplo(db) {
   }
 }
 
-// Executa fn dentro de uma transação. Se algo falhar, nada é gravado.
+// Roda fn dentro de uma transação. Se qualquer passo falhar, nada fica gravado,
+// nem pela metade.
 function emTransacao(db, fn) {
   db.exec('BEGIN IMMEDIATE');
   try {
@@ -89,7 +92,7 @@ function emTransacao(db, fn) {
     db.exec('COMMIT');
     return resultado;
   } catch (erro) {
-    try { db.exec('ROLLBACK'); } catch { /* transação já desfeita */ }
+    try { db.exec('ROLLBACK'); } catch { /* a transação já tinha sido desfeita */ }
     throw erro;
   }
 }

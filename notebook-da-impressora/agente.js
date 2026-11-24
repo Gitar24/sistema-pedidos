@@ -1,23 +1,22 @@
-// =============================================================================
-// AGENTE DE IMPRESSÃO — roda no NOTEBOOK onde a impressora está ligada (USB).
-// (Veja também o LEIA-ME.md desta pasta.)
+// Agente de impressão. Roda no notebook que tem a impressora ligada por USB.
+// (Tem mais detalhes no LEIA-ME.md desta pasta.)
 //
-// Recebe os bytes ESC/POS do servidor pela rede (TCP, porta 9100) e grava no
-// dispositivo da impressora. Não depende de nenhum pacote: só precisa do Node.
+// Ele escuta na porta 9100, recebe do servidor os bytes ESC/POS do pedido e
+// despeja tudo no dispositivo da impressora. Não precisa instalar nada, só o Node.
 //
-//   node agente.js                         (usa o dispositivo padrão abaixo)
+//   node agente.js                         (usa o dispositivo padrão, veja abaixo)
 //   DISPOSITIVO=/dev/usb/lp1 node agente.js
 //
-// *** DEPENDE DO MODELO / SISTEMA DO NOTEBOOK ***  -> valor de DISPOSITIVO:
-//   Linux:   /dev/usb/lp0  (impressora USB de classe "printer"; o usuário precisa
-//            estar no grupo "lp": sudo usermod -aG lp $USER)
-//   Windows: compartilhe a impressora (ex.: nome "TERMICA") e use \\localhost\TERMICA
-//            A impressora deve estar com driver "Generic / Text Only" para receber RAW.
-//   Serial:  /dev/ttyUSB0 ou COM3 (ajuste a velocidade conforme o manual do modelo)
+// O valor de DISPOSITIVO depende do sistema e da impressora do notebook:
+//   Linux:   /dev/usb/lp0. A impressora USB precisa ser da classe "printer" e o
+//            seu usuário precisa estar no grupo "lp" (sudo usermod -aG lp $USER).
+//   Windows: compartilhe a impressora (por exemplo com o nome "TERMICA") e use
+//            \\localhost\TERMICA. O driver tem que ser o "Generic / Text Only",
+//            senão o Windows não deixa passar os bytes crus.
+//   Serial:  /dev/ttyUSB0 ou COM3. Confira a velocidade no manual do modelo.
 //
-// Se a impressora estiver desligada/desconectada, o agente derruba a conexão e o
-// servidor marca o pedido como NÃO IMPRESSO.
-// =============================================================================
+// Se a impressora estiver desligada ou desconectada, o agente derruba a conexão
+// de propósito. É assim que o servidor descobre e marca o pedido como não impresso.
 const net = require('net');
 const fs = require('fs');
 
@@ -31,7 +30,7 @@ const servidor = net.createServer((conexao) => {
     fd = fs.openSync(DISPOSITIVO, 'w');
   } catch (erro) {
     console.error(`[${new Date().toLocaleString()}] Impressora indisponível (${DISPOSITIVO}): ${erro.message}`);
-    conexao.resetAndDestroy(); // avisa o servidor que não imprimiu
+    conexao.resetAndDestroy(); // derruba a conexão para o servidor saber que não deu para imprimir
     return;
   }
 

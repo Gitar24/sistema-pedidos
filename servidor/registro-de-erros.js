@@ -1,4 +1,5 @@
-// Registro de erros inesperados em arquivo no servidor.
+// Guarda num arquivo, no servidor, os erros que ninguém esperava, para dar para
+// investigar depois.
 const fs = require('fs');
 const path = require('path');
 const config = require('./configuracoes');
@@ -11,7 +12,7 @@ function registrarErro(contexto, erro) {
   try {
     fs.appendFileSync(config.arquivoDeErros, linha);
   } catch (falhaLog) {
-    // Se nem o log puder ser gravado, ao menos aparece no terminal do servidor.
+    // Se nem o arquivo de log aceitar a gravação, pelo menos o erro aparece no terminal.
     console.error('Falha ao gravar log:', falhaLog);
   }
   console.error(linha.trim());
@@ -22,7 +23,7 @@ function registrarAviso(mensagem) {
   try {
     fs.appendFileSync(config.arquivoDeErros, linha);
   } catch {
-    /* ignora: aviso não é crítico */
+    /* tudo bem: aviso que se perde não faz falta */
   }
   console.warn(linha.trim());
 }

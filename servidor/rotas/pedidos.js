@@ -1,14 +1,12 @@
-// =============================================================================
-// ROTAS DOS PEDIDOS
-//   GET  /api/pedidos                   -> últimos pedidos (?status=impresso|nao_impresso|cancelado filtra)
-//   POST /api/pedidos                   -> registra o pedido e manda imprimir
-//                                          { "itens": [{ "itemId": 1, "quantidade": 2 }] }
-//   POST /api/pedidos/:id/imprimir      -> reimprime um pedido
-//   POST /api/pedidos/:id/cancelar      -> cancela o pedido (o cliente desistiu); fica no histórico
+// Rotas dos pedidos:
+//   GET  /api/pedidos                os últimos pedidos (?status=impresso|nao_impresso|cancelado filtra)
+//   POST /api/pedidos                registra o pedido e manda imprimir,
+//                                    ex.: { "itens": [{ "itemId": 1, "quantidade": 2 }] }
+//   POST /api/pedidos/:id/imprimir   reimprime um pedido
+//   POST /api/pedidos/:id/cancelar   cancela o pedido (o cliente desistiu); ele fica no histórico
 //
-// Regra principal: o pedido é SALVO primeiro. Só depois tentamos imprimir.
-// Se a impressora falhar, o pedido continua salvo como "nao_impresso".
-// =============================================================================
+// A regra que vale para tudo: o pedido é salvo primeiro e só depois tentamos
+// imprimir. Se a impressora falhar, o pedido não se perde: fica salvo como "nao_impresso".
 const express = require('express');
 const { validarNovoPedido, validarIdPedido } = require('../validacao');
 const { ErroNaoEncontrado, ErroValidacao } = require('../tipos-de-erro');
@@ -18,7 +16,8 @@ const { registrarErro, registrarAviso } = require('../registro-de-erros');
 function rotasPedidos(consultas, impressora) {
   const rotas = express.Router();
 
-  // Tenta imprimir e atualizar o status. Nunca lança: devolve o resultado.
+  // Tenta imprimir e atualizar o status. Nunca lança erro; quem chamou recebe o
+  // resultado e decide o que mostrar.
   async function tentarImprimir(pedido, reimpressao = false) {
     try {
       await impressora.imprimirPedido({ ...pedido, reimpressao });
@@ -54,7 +53,7 @@ function rotasPedidos(consultas, impressora) {
 
   rotas.post('/', async (req, res) => {
     const itens = validarNovoPedido(req.body);
-    const pedido = consultas.criarPedido(itens); // lança ErroBanco se não gravar -> tela não confirma
+    const pedido = consultas.criarPedido(itens); // se não gravar, lança ErroBanco e a tela não confirma nada
     const resultado = await tentarImprimir(pedido);
     res.status(201).json({
       pedido: consultas.buscarPedido(pedido.id),
@@ -83,7 +82,7 @@ function rotasPedidos(consultas, impressora) {
 
   rotas.post('/:id/cancelar', (req, res) => {
     const id = validarIdPedido(req.params.id);
-    const { pedido, jaFoiImpresso } = consultas.cancelarPedido(id); // lança erro se não conseguir gravar
+    const { pedido, jaFoiImpresso } = consultas.cancelarPedido(id); // se não conseguir gravar, lança erro
     res.json({
       pedido,
       jaFoiImpresso,

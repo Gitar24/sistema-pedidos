@@ -1,19 +1,17 @@
-// =============================================================================
-// PEDIDO ATUAL — o pedido que o funcionário está montando, e o botão
-// "Registrar e imprimir". O pedido só sai da tela se o servidor confirmar que salvou.
+// O pedido que o funcionário está montando, e o botão "Registrar e imprimir".
+// O pedido só sai da tela depois que o servidor confirma que salvou.
 //
-// Personalização: cada linha tem um campo de observação ("sem verduras", "queijo extra").
-//   - Itens iguais SEM observação se juntam numa linha só (2x Coxinha).
-//   - Se só uma unidade é diferente, use "Separar 1": ela vira uma linha própria,
-//     onde dá para escrever a observação sem afetar as outras.
-// =============================================================================
+// Cada linha tem um campo de observação ("sem verduras", "queijo extra"):
+//   - itens iguais e sem observação se juntam numa linha só (2x Coxinha);
+//   - se só uma unidade precisa ser diferente, o botão "Separar 1" tira ela da
+//     linha e cria outra, onde dá para escrever a observação sem afetar as demais.
 
 let pedidoAtual = []; // [{ chave, itemId, nome, precoCentavos, quantidade, observacao }]
-let proximaChave = 1; // identifica cada linha na tela (várias linhas podem ser do mesmo item)
+let proximaChave = 1; // identifica cada linha na tela (o mesmo item pode ter várias linhas)
 let enviando = false;
 
 function adicionarAoPedido(item) {
-  // Só junta com uma linha igual que ainda não tenha observação.
+  // Só soma numa linha que já exista se ela ainda não tiver observação.
   const jaNoPedido = pedidoAtual.find((linha) => linha.itemId === item.id && linha.observacao === '');
   if (jaNoPedido) jaNoPedido.quantidade++;
   else pedidoAtual.push({ chave: proximaChave++, itemId: item.id, nome: item.nome, precoCentavos: item.precoCentavos, quantidade: 1, observacao: '' });
@@ -27,14 +25,14 @@ function mudarQuantidade(chave, quanto) {
   desenharPedidoAtual();
 }
 
-// Tira 1 unidade da linha e cria uma linha nova (sem observação) logo abaixo dela.
+// Tira uma unidade da linha e cria uma linha nova, sem observação, logo abaixo.
 function separarUmaUnidade(chave) {
   const posicao = pedidoAtual.findIndex((l) => l.chave === chave);
   const linha = pedidoAtual[posicao];
   linha.quantidade--;
   pedidoAtual.splice(posicao + 1, 0, { ...linha, chave: proximaChave++, quantidade: 1, observacao: '' });
   desenharPedidoAtual();
-  // Leva o cursor direto para a observação da linha nova.
+  // Já deixa o cursor no campo de observação da linha nova.
   document.querySelector(`[data-chave="${pedidoAtual[posicao + 1].chave}"] input`).focus();
 }
 
@@ -56,7 +54,7 @@ function desenharPedidoAtual() {
     campo.placeholder = 'Observação (ex.: sem verduras)';
     campo.maxLength = 80;
     campo.value = item.observacao;
-    // Guarda o que foi digitado sem redesenhar a tabela (senão o cursor sai do campo).
+    // Guarda o que foi digitado sem redesenhar a tabela, senão o cursor sairia do campo.
     campo.addEventListener('input', () => { item.observacao = campo.value; });
     celulaItem.append(campo);
 
@@ -89,8 +87,9 @@ function desenharPedidoAtual() {
   document.getElementById('botao-limpar').disabled = pedidoAtual.length === 0 || enviando;
 }
 
-// O cliente desistiu antes de o pedido ser registrado: esvazia o pedido na tela.
-// (Nada foi salvo ainda. Para cancelar um pedido já registrado, use "Cancelar" em Pedidos recentes.)
+// O cliente desistiu antes de o pedido ser registrado, então é só esvaziar a tela.
+// Nada tinha sido salvo. Para cancelar um pedido que já foi registrado, o caminho
+// é o botão "Cancelar" em Pedidos recentes.
 function limparPedido() {
   if (pedidoAtual.length === 0) return;
   if (!confirm('Limpar o pedido atual? Os itens e observações serão descartados.')) return;
@@ -99,7 +98,7 @@ function limparPedido() {
 }
 
 async function registrarPedido() {
-  if (enviando) return; // evita registrar duas vezes com clique duplo
+  if (enviando) return; // clique duplo não pode registrar o pedido duas vezes
   enviando = true;
   const botao = document.getElementById('botao-registrar');
   botao.textContent = 'Enviando...';
@@ -111,13 +110,13 @@ async function registrarPedido() {
         itens: pedidoAtual.map(({ itemId, quantidade, observacao }) => ({ itemId, quantidade, observacao })),
       }),
     });
-    // Chegou aqui = o servidor confirmou que o pedido está salvo no banco.
+    // Se chegou até aqui, o servidor confirmou que o pedido está salvo no banco.
     pedidoAtual = [];
     if (dados.impresso) mostrarMensagem(dados.mensagem, 'sucesso');
-    else mostrarMensagem(dados.aviso || dados.mensagem, 'aviso'); // salvo, mas impressora falhou
-    carregarPedidosRecentes(); // em pedidos-recentes.js
+    else mostrarMensagem(dados.aviso || dados.mensagem, 'aviso'); // o pedido foi salvo, mas a impressora falhou
+    carregarPedidosRecentes(); // está em pedidos-recentes.js
   } catch (erro) {
-    // Não foi salvo: o pedido continua na tela (com as observações) para tentar de novo.
+    // Não foi salvo. O pedido continua na tela, com as observações, para tentar de novo.
     mostrarFalha(erro, 'Pedido NÃO registrado');
   } finally {
     enviando = false;

@@ -1,31 +1,30 @@
-// =============================================================================
-// ⚠ TEMPORÁRIO — PRÉVIA DA NOTA NO NAVEGADOR (enquanto não há impressora)
+// Temporário: mostra a nota no navegador enquanto ainda não temos impressora.
 //
-// Lê os MESMOS bytes ESC/POS que iriam para a impressora e desenha o recibo em HTML,
-// respeitando alinhamento, negrito e tamanho dobrado. É uma aproximação: a fonte e
-// o espaçamento reais dependem do modelo da impressora.
+// Ele lê exatamente os mesmos bytes ESC/POS que iriam para a impressora e desenha
+// o recibo em HTML, com alinhamento, negrito e letra grande. É só uma aproximação:
+// a fonte e o espaçamento de verdade dependem do modelo da impressora.
 //
-// COMO REMOVER (quando tiver a impressora): apague estes 5 itens e nada mais quebra.
+// Quando a impressora chegar, apague estes cinco itens e nada mais quebra:
 //   1. servidor/impressao/previa-temporaria.js        (este arquivo)
 //   2. servidor/rotas/previa-temporaria.js
-//   3. as 2 linhas marcadas "TEMPORÁRIO" em servidor/aplicacao.js
-//   4. pagina-web/js/ver-nota-temporario.js  e a <script> dele em pagina-web/index.html
+//   3. as 2 linhas marcadas "temporário" em servidor/aplicacao.js
+//   4. pagina-web/js/ver-nota-temporario.js e a <script> dele em pagina-web/index.html
 //   5. testes/previa-temporaria.test.js
-// =============================================================================
 const { PC860 } = require('./ajustar-conforme-modelo/perfil-da-impressora');
 
-// Tabela inversa: byte PC860 -> letra (para mostrar os acentos).
+// A tabela PC860 ao contrário (do byte para a letra), para os acentos aparecerem.
 const PC860_PARA_LETRA = Object.fromEntries(Object.entries(PC860).map(([letra, byte]) => [byte, letra]));
 
 function escaparHtml(texto) {
   return texto.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// Interpreta os bytes e devolve a lista de linhas do papel.
+// Lê os bytes como a impressora leria e devolve as linhas do papel, já com o
+// estilo de cada trecho.
 function interpretarBytes(bytes) {
   const linhas = [];
   let estado = { alinhamento: 'left', negrito: false, largura: 1, altura: 1 };
-  let pedacos = []; // trechos da linha atual: { texto, negrito, largura, altura }
+  let pedacos = []; // os trechos da linha atual: { texto, negrito, largura, altura }
 
   const fecharLinha = () => {
     linhas.push({ tipo: 'texto', alinhamento: estado.alinhamento, pedacos });
@@ -42,15 +41,15 @@ function interpretarBytes(bytes) {
 
   for (let i = 0; i < bytes.length; i++) {
     const b = bytes[i];
-    if (b === 0x1b) {                       // comandos ESC
+    if (b === 0x1b) {                       // comando ESC
       const comando = bytes[i + 1];
       const valor = bytes[i + 2];
       if (comando === 0x40) { estado = { alinhamento: 'left', negrito: false, largura: 1, altura: 1 }; i += 1; }
       else if (comando === 0x61) { estado.alinhamento = ['left', 'center', 'right'][valor] || 'left'; i += 2; }
       else if (comando === 0x45) { estado.negrito = valor === 1; i += 2; }
       else if (comando === 0x64) { for (let n = 0; n < valor; n++) linhas.push({ tipo: 'texto', alinhamento: 'left', pedacos: [] }); i += 2; }
-      else i += 2;                          // ESC t n e outros: sem efeito visual
-    } else if (b === 0x1d) {                // comandos GS
+      else i += 2;                          // ESC t n e outros não mudam nada na tela
+    } else if (b === 0x1d) {                // comando GS
       const comando = bytes[i + 1];
       if (comando === 0x21) { const v = bytes[i + 2]; estado.largura = (v >> 4) + 1; estado.altura = (v & 15) + 1; i += 2; }
       else if (comando === 0x56) { if (pedacos.length) fecharLinha(); linhas.push({ tipo: 'corte' }); i += bytes[i + 2] >= 65 ? 3 : 2; }
