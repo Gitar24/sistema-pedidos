@@ -1,0 +1,5 @@
+# Gerados automaticamente quando o sistema roda
+node_modules/
+dados/
+registros/
+impressoes-simuladas/

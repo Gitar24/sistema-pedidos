@@ -1,0 +1,19 @@
+{
+  "name": "sistema-pedidos",
+  "version": "0.1.0",
+  "description": "Sistema de pedidos local (rede Wi-Fi, sem internet) com impressão ESC/POS",
+  "main": "servidor/iniciar.js",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node servidor/iniciar.js",
+    "iniciar": "node servidor/iniciar.js",
+    "test": "node --test \"testes/*.test.js\"",
+    "testar": "node --test \"testes/*.test.js\""
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
