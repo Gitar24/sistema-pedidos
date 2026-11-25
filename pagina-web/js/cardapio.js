@@ -13,19 +13,18 @@ async function carregarCardapio() {
 }
 
 function desenharCardapio() {
-  const tabela = document.querySelector('#tabela-cardapio tbody');
-  tabela.replaceChildren();
+  const lista = document.getElementById('lista-cardapio');
+  lista.replaceChildren();
   for (const item of itensDoCardapio) {
-    const linha = tabela.insertRow();
-    linha.insertCell().textContent = item.nome;
-    const preco = linha.insertCell();
-    preco.className = 'num';
-    preco.textContent = emReais(item.precoCentavos);
-    const botao = document.createElement('button');
-    botao.textContent = 'Adicionar';
-    botao.className = 'btn btn-adicionar';
+    const nome = criarElemento('span', '', item.nome);
+    nome.append(criarElemento('div', 'preco', emReais(item.precoCentavos)));
+    const botao = criarElemento('button', 'btn btn-adicionar', 'Adicionar');
     botao.addEventListener('click', () => adicionarAoPedido(item)); // está em pedido-atual.js
-    linha.insertCell().append(botao);
+    const topo = criarElemento('div', 'linha-topo');
+    topo.append(nome, botao);
+    const linha = criarElemento('li');
+    linha.append(topo);
+    lista.append(linha);
   }
   document.getElementById('cardapio-vazio').classList.toggle('oculto', itensDoCardapio.length > 0);
 }

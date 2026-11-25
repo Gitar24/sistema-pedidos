@@ -16,6 +16,7 @@ const ESQUEMA = `
 
   CREATE TABLE IF NOT EXISTS pedidos (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    mesa        TEXT    NOT NULL DEFAULT '',  -- vazio só em pedidos de antes de existir a mesa
     status      TEXT    NOT NULL DEFAULT 'nao_impresso'
                 CHECK (status IN ('nao_impresso', 'impresso')),
     total_centavos INTEGER NOT NULL CHECK (total_centavos >= 0),
@@ -46,7 +47,7 @@ function abrirBanco(arquivo) {
   }
   const db = new DatabaseSync(arquivo);
   db.exec('PRAGMA foreign_keys = ON;');
-  db.exec('PRAGMA journal_mode = WAL;');   // vários notebooks podem ler e gravar ao mesmo tempo
+  db.exec('PRAGMA journal_mode = WAL;');   // vários celulares podem ler e gravar ao mesmo tempo
   db.exec('PRAGMA busy_timeout = 5000;');
   db.exec(ESQUEMA);
   atualizarBancoAntigo(db);
@@ -64,6 +65,9 @@ function atualizarBancoAntigo(db) {
   }
   if (!colunasDe('pedidos').includes('cancelado_em')) {      // veio com o "cancelar pedido"
     db.exec('ALTER TABLE pedidos ADD COLUMN cancelado_em TEXT');
+  }
+  if (!colunasDe('pedidos').includes('mesa')) {              // veio com a identificação da mesa
+    db.exec("ALTER TABLE pedidos ADD COLUMN mesa TEXT NOT NULL DEFAULT ''");
   }
 }
 

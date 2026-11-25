@@ -72,7 +72,7 @@ for (const [descricao, corpo, trecho] of [
 }
 
 test('registra pedido e imprime', async () => {
-  const { status, dados } = await req('POST', '/api/pedidos', { itens: [{ itemId: 1, quantidade: 2 }, { itemId: 2 }] });
+  const { status, dados } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 1, quantidade: 2 }, { itemId: 2 }] });
   assert.strictEqual(status, 201);
   assert.strictEqual(dados.impresso, true);
   assert.strictEqual(dados.pedido.status, 'impresso');
@@ -82,11 +82,16 @@ test('registra pedido e imprime', async () => {
 });
 
 for (const [descricao, corpo, trecho] of [
-  ['sem itens', { itens: [] }, 'pelo menos um item'],
-  ['sem campo itens', {}, 'pelo menos um item'],
-  ['item inexistente', { itens: [{ itemId: 9999 }] }, 'não existe no cardápio'],
-  ['quantidade zero', { itens: [{ itemId: 1, quantidade: 0 }] }, 'quantidade'],
-  ['itemId inválido', { itens: [{ itemId: 'a' }] }, 'identificador'],
+  ['sem itens', { mesa: '5', itens: [] }, 'pelo menos um item'],
+  ['sem campo itens', { mesa: '5' }, 'pelo menos um item'],
+  ['item inexistente', { mesa: '5', itens: [{ itemId: 9999 }] }, 'não existe no cardápio'],
+  ['quantidade zero', { mesa: '5', itens: [{ itemId: 1, quantidade: 0 }] }, 'quantidade'],
+  ['sem mesa', { itens: [{ itemId: 1 }] }, 'mesa'],
+  ['mesa em branco', { mesa: '   ', itens: [{ itemId: 1 }] }, 'mesa'],
+  ['mesa grande demais', { mesa: 'a'.repeat(13), itens: [{ itemId: 1 }] }, 'no máximo 12'],
+  ['mesa zero', { mesa: 0, itens: [{ itemId: 1 }] }, 'mesa'],
+  ['mesa que não é texto', { mesa: ['1'], itens: [{ itemId: 1 }] }, 'mesa'],
+  ['itemId inválido', { mesa: '5', itens: [{ itemId: 'a' }] }, 'identificador'],
 ]) {
   test(`recusa pedido: ${descricao}`, async () => {
     const antes = db.prepare('SELECT COUNT(*) AS n FROM pedidos').get().n;
@@ -97,6 +102,14 @@ for (const [descricao, corpo, trecho] of [
   });
 }
 
+test('a mesa é guardada, devolvida e enviada para a impressora', async () => {
+  const texto = await req('POST', '/api/pedidos', { mesa: '  Varanda  2 ', itens: [{ itemId: 1 }] });
+  assert.strictEqual(texto.dados.pedido.mesa, 'Varanda 2');
+  assert.strictEqual(impressoraFalsa.impressos.at(-1).mesa, 'Varanda 2');
+  const numero = await req('POST', '/api/pedidos', { mesa: 12, itens: [{ itemId: 1 }] });
+  assert.strictEqual(numero.dados.pedido.mesa, '12');
+});
+
 test('recusa JSON malformado', async () => {
   const { status, dados } = await req('POST', '/api/pedidos', undefined, '{itens: [');
   assert.strictEqual(status, 400);
@@ -105,7 +118,7 @@ test('recusa JSON malformado', async () => {
 
 test('impressora desligada: pedido fica salvo como não impresso e pode ser reimpresso', async () => {
   impressoraFalsa.ligada = false;
-  const r1 = await req('POST', '/api/pedidos', { itens: [{ itemId: 3 }] });
+  const r1 = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 3 }] });
   assert.strictEqual(r1.status, 201);
   assert.strictEqual(r1.dados.impresso, false);
   assert.match(r1.dados.aviso, /desligada/);
@@ -125,7 +138,7 @@ test('impressora desligada: pedido fica salvo como não impresso e pode ser reim
 });
 
 test('reimpressão de pedido já impresso é marcada como reimpressão', async () => {
-  const { dados } = await req('POST', '/api/pedidos', { itens: [{ itemId: 4 }] });
+  const { dados } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 4 }] });
   await req('POST', `/api/pedidos/${dados.pedido.id}/imprimir`);
   assert.strictEqual(impressoraFalsa.impressos.at(-1).reimpressao, true);
 });
@@ -142,7 +155,7 @@ test('falha do banco: pedido não é confirmado, nada fica gravado e o erro vai 
   db.exec(`CREATE TRIGGER falha_simulada BEFORE INSERT ON itens_pedido
            BEGIN SELECT RAISE(ABORT, 'disco cheio simulado'); END;`);
   try {
-    const { status, dados } = await req('POST', '/api/pedidos', { itens: [{ itemId: 1 }] });
+    const { status, dados } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 1 }] });
     assert.strictEqual(status, 500);
     assert.match(dados.erro, /NÃO foi registrado/);
     assert.strictEqual(dados.pedido, undefined);
@@ -163,6 +176,7 @@ test('rota inexistente da API dá 404 em JSON', async () => {
 
 test('pedido com observação guarda o texto limpo e devolve na resposta', async () => {
   const { status, dados } = await req('POST', '/api/pedidos', {
+    mesa: '5',
     itens: [
       { itemId: 4, quantidade: 1, observacao: '  sem   verduras\ne sem tomate ' },
       { itemId: 4, quantidade: 1 },
@@ -175,10 +189,10 @@ test('pedido com observação guarda o texto limpo e devolve na resposta', async
 });
 
 test('recusa observação grande demais ou que não é texto', async () => {
-  const grande = await req('POST', '/api/pedidos', { itens: [{ itemId: 1, observacao: 'a'.repeat(81) }] });
+  const grande = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 1, observacao: 'a'.repeat(81) }] });
   assert.strictEqual(grande.status, 400);
   assert.match(grande.dados.erro, /no máximo 80 caracteres/);
-  const numero = await req('POST', '/api/pedidos', { itens: [{ itemId: 1, observacao: 123 }] });
+  const numero = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 1, observacao: 123 }] });
   assert.strictEqual(numero.status, 400);
   assert.match(numero.dados.erro, /deve ser um texto/);
 });
@@ -203,6 +217,7 @@ test('banco antigo (sem coluna observacao) é atualizado sem perder pedidos', ()
   const linha = atualizado.prepare('SELECT nome, observacao FROM itens_pedido').get();
   assert.strictEqual(linha.nome, 'Coxinha');
   assert.strictEqual(linha.observacao, '');
+  assert.strictEqual(atualizado.prepare('SELECT mesa FROM pedidos').get().mesa, '', 'coluna da mesa criada');
   assert.strictEqual(atualizado.prepare('SELECT cancelado_em FROM pedidos').get().cancelado_em, null, 'coluna de cancelamento criada');
   atualizado.close();
 });
@@ -211,7 +226,7 @@ test('banco antigo (sem coluna observacao) é atualizado sem perder pedidos', ()
 
 test('cancelar pedido não impresso: fica no histórico como cancelado e não pode ser reimpresso', async () => {
   impressoraFalsa.ligada = false;
-  const { dados: criado } = await req('POST', '/api/pedidos', { itens: [{ itemId: 1 }] });
+  const { dados: criado } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 1 }] });
   impressoraFalsa.ligada = true;
   const id = criado.pedido.id;
 
@@ -234,7 +249,7 @@ test('cancelar pedido não impresso: fica no histórico como cancelado e não po
 });
 
 test('cancelar pedido já impresso avisa para avisar a cozinha', async () => {
-  const { dados: criado } = await req('POST', '/api/pedidos', { itens: [{ itemId: 2 }] });
+  const { dados: criado } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 2 }] });
   assert.strictEqual(criado.pedido.status, 'impresso');
   const r = await req('POST', `/api/pedidos/${criado.pedido.id}/cancelar`);
   assert.strictEqual(r.dados.jaFoiImpresso, true);
@@ -242,7 +257,7 @@ test('cancelar pedido já impresso avisa para avisar a cozinha', async () => {
 });
 
 test('cancelar duas vezes ou pedido inexistente é recusado com motivo', async () => {
-  const { dados: criado } = await req('POST', '/api/pedidos', { itens: [{ itemId: 3 }] });
+  const { dados: criado } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 3 }] });
   await req('POST', `/api/pedidos/${criado.pedido.id}/cancelar`);
   const de_novo = await req('POST', `/api/pedidos/${criado.pedido.id}/cancelar`);
   assert.strictEqual(de_novo.status, 400);
@@ -254,7 +269,7 @@ test('cancelar duas vezes ou pedido inexistente é recusado com motivo', async (
 });
 
 test('falha do banco ao cancelar: pedido continua ativo e a tela recebe erro', async () => {
-  const { dados: criado } = await req('POST', '/api/pedidos', { itens: [{ itemId: 4 }] });
+  const { dados: criado } = await req('POST', '/api/pedidos', { mesa: '5', itens: [{ itemId: 4 }] });
   const id = criado.pedido.id;
   db.exec(`CREATE TRIGGER falha_cancelar BEFORE UPDATE OF cancelado_em ON pedidos
            BEGIN SELECT RAISE(ABORT, 'banco travado simulado'); END;`);

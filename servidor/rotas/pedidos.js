@@ -1,7 +1,7 @@
 // Rotas dos pedidos:
 //   GET  /api/pedidos                os últimos pedidos (?status=impresso|nao_impresso|cancelado filtra)
 //   POST /api/pedidos                registra o pedido e manda imprimir,
-//                                    ex.: { "itens": [{ "itemId": 1, "quantidade": 2 }] }
+//                                    ex.: { "mesa": "7", "itens": [{ "itemId": 1, "quantidade": 2 }] }
 //   POST /api/pedidos/:id/imprimir   reimprime um pedido
 //   POST /api/pedidos/:id/cancelar   cancela o pedido (o cliente desistiu); ele fica no histórico
 //
@@ -52,8 +52,8 @@ function rotasPedidos(consultas, impressora) {
   });
 
   rotas.post('/', async (req, res) => {
-    const itens = validarNovoPedido(req.body);
-    const pedido = consultas.criarPedido(itens); // se não gravar, lança ErroBanco e a tela não confirma nada
+    const novoPedido = validarNovoPedido(req.body);
+    const pedido = consultas.criarPedido(novoPedido); // se não gravar, lança ErroBanco e a tela não confirma nada
     const resultado = await tentarImprimir(pedido);
     res.status(201).json({
       pedido: consultas.buscarPedido(pedido.id),

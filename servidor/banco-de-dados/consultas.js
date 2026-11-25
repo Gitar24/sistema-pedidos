@@ -24,7 +24,7 @@ function criarConsultas(db) {
 
   // O pedido e os itens dele são gravados juntos, numa transação só: ou entra tudo,
   // ou não entra nada.
-  function criarPedido(itensSolicitados) {
+  function criarPedido({ mesa, itens: itensSolicitados }) {
     const buscarItem = db.prepare('SELECT id, nome, preco_centavos AS precoCentavos FROM itens_cardapio WHERE id = ?');
 
     const itens = itensSolicitados.map((solicitado, i) => {
@@ -39,7 +39,7 @@ function criarConsultas(db) {
     let pedidoId;
     try {
       pedidoId = emTransacao(db, () => {
-        const { lastInsertRowid } = db.prepare('INSERT INTO pedidos (total_centavos) VALUES (?)').run(totalCentavos);
+        const { lastInsertRowid } = db.prepare('INSERT INTO pedidos (mesa, total_centavos) VALUES (?, ?)').run(mesa, totalCentavos);
         const inserirItem = db.prepare(
           'INSERT INTO itens_pedido (pedido_id, item_id, nome, preco_centavos, quantidade, observacao) VALUES (?, ?, ?, ?, ?, ?)',
         );
@@ -57,7 +57,7 @@ function criarConsultas(db) {
   function buscarPedido(id) {
     const pedido = db.prepare(
       // Se existe data de cancelamento, quem vê o pedido enxerga o status "cancelado".
-      `SELECT id,
+      `SELECT id, mesa,
               CASE WHEN cancelado_em IS NOT NULL THEN 'cancelado' ELSE status END AS status,
               total_centavos AS totalCentavos, criado_em AS criadoEm,
               impresso_em AS impressoEm, cancelado_em AS canceladoEm

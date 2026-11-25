@@ -68,7 +68,7 @@ function gerarPaginaDaNota(bytes, { numeroDoPedido, colunas }) {
     if (linha.pedacos.length === 0) return '<div class="linha">&nbsp;</div>';
     const alturaMaxima = Math.max(...linha.pedacos.map((p) => p.altura));
     const trechos = linha.pedacos.map((p) => {
-      const estilo = `${p.negrito ? 'font-weight:bold;' : ''}${p.largura > 1 ? `font-size:${p.largura}em;` : ''}`;
+      const estilo = `${p.negrito ? 'font-weight:bold;' : ''}${p.largura > 1 ? `font-size:${p.largura}em;` : p.altura > 1 ? `display:inline-block;transform:scaleY(${p.altura * 0.8});` : ''}`;
       return `<span style="${estilo}">${escaparHtml(p.texto).replace(/ /g, '&nbsp;')}</span>`;
     }).join('');
     return `<div class="linha" style="text-align:${linha.alinhamento};${alturaMaxima > 1 ? `line-height:${alturaMaxima * 1.3}em;` : ''}">${trechos}</div>`;
@@ -81,7 +81,7 @@ function gerarPaginaDaNota(bytes, { numeroDoPedido, colunas }) {
   body { background: #d8d8d8; font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
   .aviso { max-width: 60ch; margin: 0 auto 1rem; background: #fff1c9; color: #6b4e00; padding: .6rem .8rem; border-radius: 4px; font-size: .85rem; }
   .papel { width: ${colunas}ch; max-width: 100%; margin: 0 auto; background: #fff; padding: 1rem 0.8ch; box-shadow: 0 2px 8px #0005;
-           font-family: "DejaVu Sans Mono", Consolas, "Courier New", monospace; font-size: 15px; line-height: 1.3; overflow-x: auto; }
+           font-family: "DejaVu Sans Mono", Consolas, "Courier New", monospace; font-size: min(15px, 3.2vw); line-height: 1.3; overflow-x: auto; }
   .linha { white-space: pre; }
   .corte { margin: .6rem 0 0; text-align: center; color: #999; font-size: .75em; white-space: nowrap; }
 </style></head><body>

@@ -1,10 +1,8 @@
-// Desenha o papelzinho do pedido. Só usa comandos ESC/POS padrão e o que o perfil
-// da impressora declara, então este arquivo não muda de um modelo para outro.
+// Desenha a comanda: a cozinha prepara por ela e o garçom a usa para levar o prato à
+// mesa certa. Por isso não tem preço nem total.
+//
+// Só usa comandos ESC/POS padrão e o que o perfil da impressora declara, então este arquivo não muda de um modelo para outro.
 const { comandos, PapelEscPos } = require('./comandos-escpos');
-
-function formatarReais(centavos) {
-  return 'R$ ' + (centavos / 100).toFixed(2).replace('.', ',');
-}
 
 const RECUO = '  > ';
 
@@ -31,14 +29,24 @@ function montarPapelDoPedido(pedido, perfil) {
 
   doc.cmd(comandos.alinharCentro)
     .cmd(comandos.negritoLiga).cmd(comandos.tamanhoDuplo)
+    .linha(pedido.mesa ? `MESA ${pedido.mesa}` : 'SEM MESA')
+    .cmd(comandos.tamanhoNormal)
     .linha(`PEDIDO #${pedido.id}`)
-    .cmd(comandos.tamanhoNormal).cmd(comandos.negritoDesliga)
-    .linha(pedido.criadoEm)
-    .cmd(comandos.alinharEsquerda)
-    .separador();
+    .cmd(comandos.negritoDesliga)
+    .linha(pedido.criadoEm);
+  // Avisado em cima, para a cozinha não preparar o mesmo prato duas vezes.
+  if (pedido.reimpressao) {
+    doc.cmd(comandos.negritoLiga).linha('*** REIMPRESSAO ***').cmd(comandos.negritoDesliga);
+  }
+  doc.cmd(comandos.alinharEsquerda).separador();
 
   for (const item of pedido.itens) {
-    doc.colunas(`${item.quantidade}x ${item.nome}`, formatarReais(item.precoCentavos * item.quantidade));
+    const quantidade = `${item.quantidade}x `;
+    doc.cmd(comandos.negritoLiga).cmd(comandos.alturaDupla);
+    quebrarTexto(item.nome, perfil.colunas - quantidade.length).forEach((linha, i) => {
+      doc.linha((i === 0 ? quantidade : ' '.repeat(quantidade.length)) + linha);
+    });
+    doc.cmd(comandos.tamanhoNormal).cmd(comandos.negritoDesliga);
     if (item.observacao) {
       // A observação vai logo abaixo do item, em negrito e com recuo, para a cozinha
       // não deixar passar.
@@ -48,18 +56,11 @@ function montarPapelDoPedido(pedido, perfil) {
     }
   }
 
-  doc.separador()
-    .cmd(comandos.negritoLiga)
-    .colunas('TOTAL', formatarReais(pedido.totalCentavos))
-    .cmd(comandos.negritoDesliga);
-
-  if (pedido.reimpressao) {
-    doc.cmd(comandos.alinharCentro).linha('*** REIMPRESSAO ***').cmd(comandos.alinharEsquerda);
-  }
+  doc.separador();
 
   doc.cmd(comandos.avancarLinhas(perfil.linhasAntesDoCorte)).cmd(perfil.comandoCorte);
 
   return doc.paraBuffer();
 }
 
-module.exports = { montarPapelDoPedido, formatarReais, quebrarTexto };
+module.exports = { montarPapelDoPedido, quebrarTexto };

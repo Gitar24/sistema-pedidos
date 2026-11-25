@@ -12,11 +12,11 @@ Roda no computador fixo do estabelecimento. O `npm start` executa o `iniciar.js`
 | `registro-de-erros.js` | guarda os erros inesperados em `registros/erros.log` |
 | `rotas/` | os endereços da API: `cardapio.js` e `pedidos.js` |
 | `banco-de-dados/` | `conexao.js` (tabelas), `consultas.js` (ler e gravar) e `cardapio-de-exemplo.js` |
-| `impressao/` | o papelzinho ESC/POS. **O que depende do modelo da impressora fica em `impressao/ajustar-conforme-modelo/`** |
+| `impressao/` | a comanda ESC/POS. **O que depende do modelo da impressora fica em `impressao/ajustar-conforme-modelo/`** |
 
 ## O caminho de um pedido
 
-1. A página envia `POST /api/pedidos`, que cai em `rotas/pedidos.js`.
+1. O celular envia `POST /api/pedidos` com a mesa e os itens, que cai em `rotas/pedidos.js`.
 2. `validacao.js` confere os dados. Se estiverem errados, responde 400 explicando o motivo.
 3. `banco-de-dados/consultas.js` grava o pedido, tudo ou nada. Se não conseguir, responde 500 e a tela não confirma nada.
 4. `impressao/impressora.js` imprime. Se a impressora falhar, o pedido fica salvo como "não impresso" e a tela avisa.

@@ -8,6 +8,7 @@ const { criarImpressora, ErroImpressora } = require('../servidor/impressao/impre
 
 const pedido = {
   id: 7,
+  mesa: '4',
   criadoEm: '2026-11-24 12:30:00',
   totalCentavos: 2900,
   itens: [
@@ -23,9 +24,34 @@ test('papelzinho tem comandos ESC/POS e texto correto', () => {
   assert.ok(bytes.includes(Buffer.from([0x50, 0x84, 0x6f])), '"Pão" codificado em PC860');
   const texto = previaLegivel(bytes);
   assert.match(texto, /PEDIDO #7/);
-  assert.match(texto, /2x Pão de queijo\s+R\$ 13,00/);
-  assert.match(texto, /TOTAL\s+R\$ 29,00/);
+  assert.match(texto, /^2x Pão de queijo$/m);
   for (const linha of texto.split('\n')) assert.ok(linha.length <= PERFIL_DA_IMPRESSORA.colunas);
+});
+
+test('comanda destaca a mesa em letra grande, no topo, e não traz preços', () => {
+  const bytes = montarPapelDoPedido(pedido, PERFIL_DA_IMPRESSORA);
+  const grande = Buffer.concat([Buffer.from([0x1d, 0x21, 0x11]), Buffer.from('MESA 4\n')]);
+  assert.ok(bytes.includes(grande), 'MESA 4 em tamanho duplo');
+  const texto = previaLegivel(bytes);
+  assert.ok(texto.indexOf('MESA 4') < texto.indexOf('Pão de queijo'));
+  assert.doesNotMatch(texto, /R\$|TOTAL/);
+});
+
+test('pedido antigo, sem mesa, é impresso como SEM MESA', () => {
+  const texto = previaLegivel(montarPapelDoPedido({ ...pedido, mesa: '' }, PERFIL_DA_IMPRESSORA));
+  assert.match(texto, /SEM MESA/);
+});
+
+test('reimpressão é avisada antes dos itens', () => {
+  const texto = previaLegivel(montarPapelDoPedido({ ...pedido, reimpressao: true }, PERFIL_DA_IMPRESSORA));
+  assert.ok(texto.indexOf('REIMPRESSAO') > -1 && texto.indexOf('REIMPRESSAO') < texto.indexOf('Pão de queijo'));
+});
+
+test('nome de item longo continua na linha seguinte, sem ser cortado', () => {
+  const nome = 'Prato feito com arroz feijao bife acebolado e fritas';
+  const texto = previaLegivel(montarPapelDoPedido({ ...pedido, itens: [{ nome, quantidade: 10, observacao: '' }] }, PERFIL_DA_IMPRESSORA));
+  assert.match(texto.replace(/\n +/g, ' '), new RegExp(`10x ${nome}`));
+  for (const l of texto.split('\n')) assert.ok(l.length <= PERFIL_DA_IMPRESSORA.colunas, `linha larga: ${l}`);
 });
 
 function configRede(porta) {

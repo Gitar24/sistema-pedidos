@@ -6,6 +6,7 @@ const PRECO_MAXIMO = 100000;  // R$ 100.000,00
 const QUANTIDADE_MAXIMA = 99;
 const ITENS_MAXIMOS = 50;
 const OBSERVACAO_MAXIMA = 80;
+const MESA_MAXIMA = 12;
 
 function validarNovoItem(corpo) {
   if (!corpo || typeof corpo !== 'object') throw new ErroValidacao('Envie os dados do item (nome e preço).');
@@ -29,15 +30,29 @@ function validarNovoItem(corpo) {
   return { nome, precoCentavos };
 }
 
+// Quebra de linha e caracteres invisíveis viram espaço: nada disso pode chegar à impressora.
+function limparTexto(texto) {
+  return texto
+    .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// A mesa é obrigatória. Pode ser um número (7) ou um nome curto ("Varanda 2").
+function validarMesa(valor) {
+  if (Number.isInteger(valor) && valor > 0) valor = String(valor);
+  const mesa = typeof valor === 'string' ? limparTexto(valor) : '';
+  if (!mesa) throw new ErroValidacao('Informe a mesa do pedido.');
+  if (mesa.length > MESA_MAXIMA) throw new ErroValidacao(`A mesa deve ter no máximo ${MESA_MAXIMA} caracteres.`);
+  return mesa;
+}
+
 // A observação é opcional. É o pedido do cliente para aquele item, como
 // "sem verduras" ou "queijo extra".
 function validarObservacao(valor, posicao) {
   if (valor === undefined || valor === null) return '';
   if (typeof valor !== 'string') throw new ErroValidacao(`${posicao}: a observação deve ser um texto.`);
-  const texto = valor
-    .replace(/[\u0000-\u001f\u007f]+/g, ' ')   // quebra de linha e caracteres invisíveis viram espaço
-    .replace(/\s+/g, ' ')
-    .trim();
+  const texto = limparTexto(valor);
   if (texto.length > OBSERVACAO_MAXIMA) {
     throw new ErroValidacao(`${posicao}: a observação deve ter no máximo ${OBSERVACAO_MAXIMA} caracteres.`);
   }
@@ -53,7 +68,9 @@ function validarNovoPedido(corpo) {
     throw new ErroValidacao(`O pedido pode ter no máximo ${ITENS_MAXIMOS} linhas de itens.`);
   }
 
-  return itens.map((item, i) => {
+  const mesa = validarMesa(corpo.mesa);
+
+  const itensValidos = itens.map((item, i) => {
     const posicao = `Item ${i + 1} do pedido`;
     if (!item || typeof item !== 'object') throw new ErroValidacao(`${posicao}: formato inválido.`);
     if (!Number.isInteger(item.itemId) || item.itemId <= 0) {
@@ -65,6 +82,8 @@ function validarNovoPedido(corpo) {
     }
     return { itemId: item.itemId, quantidade, observacao: validarObservacao(item.observacao, posicao) };
   });
+
+  return { mesa, itens: itensValidos };
 }
 
 function validarIdPedido(texto) {

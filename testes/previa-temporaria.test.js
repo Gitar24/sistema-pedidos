@@ -5,14 +5,15 @@ const { montarPapelDoPedido } = require('../servidor/impressao/montar-papel');
 const { PERFIL_DA_IMPRESSORA } = require('../servidor/impressao/ajustar-conforme-modelo/perfil-da-impressora');
 const { gerarPaginaDaNota } = require('../servidor/impressao/previa-temporaria');
 
-const pedido = { id: 9, criadoEm: '2026-11-24 12:00:00', totalCentavos: 2200, itens: [
+const pedido = { id: 9, mesa: '3', criadoEm: '2026-11-24 12:00:00', totalCentavos: 2200, itens: [
   { nome: 'Pão <b>', precoCentavos: 2200, quantidade: 1, observacao: 'sem verduras' }] };
 
 test('prévia mostra título grande e centralizado, observação em negrito, acentos e corte', () => {
   const html = gerarPaginaDaNota(montarPapelDoPedido(pedido, PERFIL_DA_IMPRESSORA), { numeroDoPedido: 9, colunas: 48 });
-  assert.match(html, /text-align:center;[^>]*>.*font-weight:bold;font-size:2em;[^>]*>PEDIDO&nbsp;#9/s);
+  assert.match(html, /text-align:center;[^>]*>.*font-weight:bold;font-size:2em;[^>]*>MESA&nbsp;3/s);
   assert.match(html, /font-weight:bold;[^>]*>&nbsp;&nbsp;&gt;&nbsp;sem&nbsp;verduras/);
   assert.match(html, /Pão&nbsp;&lt;b&gt;/, 'acento correto e HTML do usuário escapado');
+  assert.match(html, /transform:scaleY[^>]*>1x&nbsp;Pão/, 'altura dupla aparece na prévia');
   assert.match(html, /class="corte"/);
   assert.match(html, /PRÉVIA TEMPORÁRIA/);
 });

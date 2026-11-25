@@ -7,6 +7,10 @@ document.getElementById('botao-atualizar').addEventListener('click', carregarPed
 document.getElementById('mensagem-fechar').addEventListener('click', fecharMensagem);
 document.getElementById('form-item').addEventListener('submit', cadastrarItem);
 
+window.addEventListener('offline', conferirConexao);
+window.addEventListener('online', conferirConexao);
+setInterval(conferirConexao, INTERVALO_DA_CONFERENCIA_MS);
+
 carregarCardapio();
 carregarPedidosRecentes();
 desenharPedidoAtual();

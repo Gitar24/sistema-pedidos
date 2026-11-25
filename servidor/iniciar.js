@@ -28,7 +28,7 @@ const app = criarApp({ db, impressora });
 app.listen(config.porta, '0.0.0.0', () => {
   console.log(`Servidor de pedidos rodando na porta ${config.porta}`);
   console.log(`Impressora: modo "${config.impressora.modo}"`);
-  console.log('Acesse pelos notebooks da rede em:');
+  console.log('Acesse pelo celular, no Wi-Fi do estabelecimento, em:');
   for (const ip of enderecosNaRede()) console.log(`  http://${ip}:${config.porta}`);
   console.log(`  (neste computador: http://localhost:${config.porta})`);
 });

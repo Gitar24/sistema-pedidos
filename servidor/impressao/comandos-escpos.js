@@ -13,6 +13,7 @@ const comandos = {
   negritoLiga: [ESC, 0x45, 1],                      // ESC E 1
   negritoDesliga: [ESC, 0x45, 0],                   // ESC E 0
   tamanhoDuplo: [GS, 0x21, 0x11],                   // GS ! (largura e altura x2)
+  alturaDupla: [GS, 0x21, 0x01],                    // GS ! (só altura x2: cabem as mesmas colunas)
   tamanhoNormal: [GS, 0x21, 0x00],                  // GS ! 0
   avancarLinhas: (n) => [ESC, 0x64, n],             // ESC d n
 };
@@ -42,14 +43,6 @@ class PapelEscPos {
 
   separador(caractere = '-') {
     return this.linha(caractere.repeat(this.perfil.colunas));
-  }
-
-  // Escreve um texto colado à esquerda e outro colado à direita na mesma linha,
-  // por exemplo "2x Coxinha      R$ 16,00". Se o da esquerda não couber, é cortado.
-  colunas(esquerda, direita, largura = this.perfil.colunas) {
-    const espaco = largura - direita.length - 1;
-    const esq = esquerda.length > espaco ? esquerda.slice(0, espaco) : esquerda;
-    return this.linha(esq + ' '.repeat(largura - esq.length - direita.length) + direita);
   }
 
   paraBuffer() {

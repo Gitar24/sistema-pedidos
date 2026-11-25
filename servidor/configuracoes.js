@@ -6,7 +6,7 @@ const path = require('path');
 const pastaDoProjeto = path.resolve(__dirname, '..');
 
 module.exports = {
-  // Porta em que os notebooks abrem a página
+  // Porta em que os celulares abrem a página
   porta: Number(process.env.PORTA) || 3000,
 
   // Onde ficam o banco de dados e o registro de erros

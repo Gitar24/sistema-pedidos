@@ -1,4 +1,4 @@
-// Troca entre as abas "Novo pedido", "Pedidos recentes" e "Cadastrar item".
+// Troca entre as abas "Novo pedido", "Pedidos" e "Cadastrar item".
 //
 // Por que abas? Para os botões Cancelar e Reimprimir ficarem numa tela à parte e
 // ninguém clicar neles sem querer enquanto monta um pedido. Trocar de aba não
@@ -21,7 +21,7 @@ function mostrarAba(nome) {
   if (nome === 'recentes') carregarPedidosRecentes();
 }
 
-// A bolinha vermelha na aba "Pedidos recentes" diz quantos pedidos ainda estão sem imprimir.
+// A bolinha vermelha na aba "Pedidos" diz quantos pedidos ainda estão sem imprimir.
 function mostrarContagemDeNaoImpressos(pedidos) {
   const faltam = pedidos.filter((p) => p.status === 'nao_impresso').length;
   const bolinha = document.getElementById('contagem-nao-impressos');

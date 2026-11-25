@@ -23,47 +23,31 @@ function criarBotao(texto, classe, aoClicar, dica) {
 }
 
 function desenharPedidosRecentes(pedidos) {
-  const tabela = document.querySelector('#tabela-pedidos tbody');
-  tabela.replaceChildren();
+  const lista = document.getElementById('lista-pedidos');
+  lista.replaceChildren();
   document.getElementById('pedidos-vazio').classList.toggle('oculto', pedidos.length > 0);
 
   for (const pedido of pedidos) {
     const cancelado = pedido.status === 'cancelado';
-    const linha = tabela.insertRow();
-    if (cancelado) linha.className = 'cancelado';
+    const linha = criarElemento('li', cancelado ? 'cancelado' : '');
 
-    linha.insertCell().textContent = pedido.id;
-    linha.insertCell().textContent = pedido.criadoEm.slice(11, 16); // só a hora, tipo "14:52"
+    const topo = criarElemento('div', 'linha-topo');
+    topo.append(
+      criarElemento('span', 'mesa-do-pedido', pedido.mesa ? `Mesa ${pedido.mesa}` : 'Sem mesa'),
+      criarElemento('span', 'selo selo-' + pedido.status, ROTULOS_DA_SITUACAO[pedido.status]),
+    );
+    const hora = pedido.criadoEm.slice(11, 16); // só a hora, tipo "14:52"
+    const resumo = criarElemento('div', 'discreto', `Pedido #${pedido.id} · ${hora} · ${emReais(pedido.totalCentavos)}`);
 
     // Os itens do pedido, com a observação do cliente em destaque.
-    const celulaItens = linha.insertCell();
-    celulaItens.className = 'itens-do-pedido';
-    const nomes = document.createElement('span');
-    nomes.className = 'nome-itens';
-    pedido.itens.forEach((item, posicao) => {
-      if (posicao > 0) nomes.append(' · ');
-      nomes.append(`${item.quantidade}x ${item.nome}`);
-      if (item.observacao) {
-        const obs = document.createElement('span');
-        obs.className = 'obs';
-        obs.textContent = ` (${item.observacao})`;
-        nomes.append(obs);
-      }
-    });
-    celulaItens.append(nomes);
+    const itens = criarElemento('div', 'itens-do-pedido');
+    for (const item of pedido.itens) {
+      const linhaDoItem = criarElemento('div', '', `${item.quantidade}x ${item.nome}`);
+      if (item.observacao) linhaDoItem.append(criarElemento('span', 'obs', ` (${item.observacao})`));
+      itens.append(linhaDoItem);
+    }
 
-    const total = linha.insertCell();
-    total.className = 'num' + (cancelado ? ' total-cancelado' : '');
-    total.textContent = emReais(pedido.totalCentavos);
-
-    const situacao = linha.insertCell();
-    const selo = document.createElement('span');
-    selo.className = 'selo selo-' + pedido.status;
-    selo.textContent = ROTULOS_DA_SITUACAO[pedido.status];
-    situacao.append(selo);
-
-    const acoes = linha.insertCell();
-    acoes.className = 'celula-acoes';
+    const acoes = criarElemento('div', 'botoes');
     // Temporário: o "Ver nota" só aparece se js/ver-nota-temporario.js estiver carregado.
     if (typeof abrirNotaTemporaria === 'function') {
       acoes.append(criarBotao('Ver nota', 'btn-neutro', () => abrirNotaTemporaria(pedido.id), 'Mostra como o papel vai sair (prévia)'));
@@ -72,6 +56,9 @@ function desenharPedidosRecentes(pedidos) {
       acoes.append(criarBotao('Reimprimir', 'btn-reimprimir', (botao) => reimprimir(pedido.id, botao)));
       acoes.append(criarBotao('Cancelar', 'btn-cancelar', (botao) => cancelarPedido(pedido, botao), 'O cliente desistiu'));
     }
+
+    linha.append(topo, resumo, itens, acoes);
+    lista.append(linha);
   }
 }
 
@@ -92,7 +79,7 @@ async function reimprimir(idDoPedido, botao) {
 // cancelar, porque não existe "desfazer".
 async function cancelarPedido(pedido, botao) {
   const jaImpresso = pedido.status === 'impresso';
-  const aviso = `Cancelar o pedido #${pedido.id} (${emReais(pedido.totalCentavos)})?`
+  const aviso = `Cancelar o pedido #${pedido.id}${pedido.mesa ? ` da mesa ${pedido.mesa}` : ''} (${emReais(pedido.totalCentavos)})?`
     + (jaImpresso ? '\n\nO papel JÁ FOI IMPRESSO: depois de cancelar, avise a cozinha.' : '');
   if (!confirm(aviso)) return;
 
