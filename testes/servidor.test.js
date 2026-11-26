@@ -10,6 +10,7 @@ process.env.ARQUIVO_LOG = path.join(pastaTemp, 'erros.log');
 const { abrirBanco } = require('../servidor/banco-de-dados/conexao');
 const { criarApp } = require('../servidor/aplicacao');
 const { ErroImpressora } = require('../servidor/impressao/impressora');
+const { enderecosNaRede } = require('../servidor/rede-local');
 
 // Uma impressora de mentirinha: dá para ligar e desligar, e ela guarda o que recebeu.
 const impressoraFalsa = {
@@ -43,6 +44,40 @@ async function req(metodo, caminho, corpo, corpoCru) {
   });
   return { status: resposta.status, dados: await resposta.json() };
 }
+
+test('acesso pelo celular usa a porta do servidor e dá prioridade ao endereço da rede local', async (t) => {
+  t.mock.method(os, 'networkInterfaces', () => ({
+    lo: [{ family: 'IPv4', internal: true, address: '127.0.0.1' }],
+    docker0: [{ family: 'IPv4', internal: false, address: '172.17.0.1' }],
+    wlan0: [
+      { family: 'IPv4', internal: false, address: '192.168.1.20' },
+      { family: 'IPv6', internal: false, address: 'fe80::1' },
+    ],
+  }));
+
+  const { status, dados } = await req('GET', '/api/acesso-celular');
+  const porta = servidor.address().port;
+  assert.strictEqual(status, 200);
+  assert.deepStrictEqual(dados.acessos.map(({ endereco }) => endereco), [
+    `http://192.168.1.20:${porta}`,
+    `http://172.17.0.1:${porta}`,
+  ]);
+  for (const { qrCode } of dados.acessos) {
+    assert.match(qrCode, /^data:image\/png;base64,iVBORw0KGgo/);
+  }
+  assert.notStrictEqual(dados.acessos[0].qrCode, dados.acessos[1].qrCode);
+  assert.strictEqual(enderecosNaRede('::ffff:172.17.0.1')[0], '172.17.0.1');
+});
+
+test('acesso pelo celular não gera QR Code para localhost quando falta rede local', async (t) => {
+  t.mock.method(os, 'networkInterfaces', () => ({
+    lo: [{ family: 'IPv4', internal: true, address: '127.0.0.1' }],
+  }));
+
+  const { status, dados } = await req('GET', '/api/acesso-celular');
+  assert.strictEqual(status, 200);
+  assert.deepStrictEqual(dados, { acessos: [] });
+});
 
 test('cardápio fictício vem carregado', async () => {
   const { status, dados } = await req('GET', '/api/cardapio');

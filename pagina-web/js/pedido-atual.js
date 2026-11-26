@@ -10,6 +10,22 @@ let pedidoAtual = []; // [{ chave, itemId, nome, precoCentavos, quantidade, obse
 let proximaChave = 1; // identifica cada linha na tela (o mesmo item pode ter várias linhas)
 let enviando = false;
 
+function preencherPedidoDeExemplo() {
+  const mesa = document.getElementById('mesa');
+  const lanche = itensDoCardapio.find((item) => item.nome === 'X-Salada');
+  const bebida = itensDoCardapio.find((item) => item.nome === 'Suco de laranja');
+  if (!lanche || !bebida || enviando) return;
+  if ((pedidoAtual.length || mesa.value.trim()) && !confirm('Substituir o pedido atual pelo exemplo?')) return;
+
+  mesa.value = '7';
+  pedidoAtual = [lanche, lanche, bebida].map(({ id, nome, precoCentavos }, indice) => ({
+    chave: proximaChave++, itemId: id, nome, precoCentavos, quantidade: 1,
+    observacao: indice === 1 ? 'Sem cebola' : '',
+  }));
+  desenharPedidoAtual();
+  document.getElementById('titulo-pedido').focus();
+}
+
 function adicionarAoPedido(item) {
   // Só soma numa linha que já exista se ela ainda não tiver observação.
   const jaNoPedido = pedidoAtual.find((linha) => linha.itemId === item.id && linha.observacao === '');
@@ -99,6 +115,9 @@ async function registrarPedido() {
     return;
   }
   enviando = true;
+  document.getElementById('inicio-demo').inert = true;
+  document.getElementById('mesa-e-cardapio').inert = true;
+  document.getElementById('cartao-pedido').inert = true;
   const botao = document.getElementById('botao-registrar');
   botao.textContent = 'Enviando...';
   desenharPedidoAtual();
@@ -113,9 +132,19 @@ async function registrarPedido() {
     // Se chegou até aqui, o servidor confirmou que o pedido está salvo no banco.
     pedidoAtual = [];
     campoDaMesa.value = '';
-    if (dados.impresso) mostrarMensagem(dados.mensagem, 'sucesso');
-    else mostrarMensagem(dados.aviso || dados.mensagem, 'aviso'); // o pedido foi salvo, mas a impressora falhou
-    carregarPedidosRecentes(); // está em pedidos-recentes.js
+    if (dados.aviso || !dados.impresso) mostrarMensagem(dados.aviso || dados.mensagem, 'aviso');
+    else mostrarMensagem(demonstracao
+      ? `Pedido #${dados.pedido.id} registrado. Impressão simulada.`
+      : dados.mensagem, 'sucesso');
+    if (demonstracao) {
+      mostrarAba('recentes');
+      if (typeof abrirNotaTemporaria === 'function') {
+        document.getElementById('aba-recentes').focus();
+        abrirNotaTemporaria(dados.pedido.id);
+      }
+    } else {
+      carregarPedidosRecentes();
+    }
   } catch (erro) {
     // O pedido continua na tela, com a mesa e as observações, para tentar de novo.
     // Se a conexão caiu no meio do envio, não dá para saber se o servidor chegou a
@@ -125,6 +154,9 @@ async function registrarPedido() {
     } else mostrarFalha(erro, 'Pedido NÃO registrado');
   } finally {
     enviando = false;
+    document.getElementById('inicio-demo').inert = false;
+    document.getElementById('mesa-e-cardapio').inert = false;
+    document.getElementById('cartao-pedido').inert = false;
     botao.textContent = 'Enviar para a cozinha';
     desenharPedidoAtual();
   }

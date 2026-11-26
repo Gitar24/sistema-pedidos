@@ -34,7 +34,8 @@ function desenharPedidosRecentes(pedidos) {
     const topo = criarElemento('div', 'linha-topo');
     topo.append(
       criarElemento('span', 'mesa-do-pedido', pedido.mesa ? `Mesa ${pedido.mesa}` : 'Sem mesa'),
-      criarElemento('span', 'selo selo-' + pedido.status, ROTULOS_DA_SITUACAO[pedido.status]),
+      criarElemento('span', 'selo selo-' + pedido.status, demonstracao && pedido.status === 'impresso'
+        ? 'Impressão simulada' : ROTULOS_DA_SITUACAO[pedido.status]),
     );
     const hora = pedido.criadoEm.slice(11, 16); // só a hora, tipo "14:52"
     const resumo = criarElemento('div', 'discreto', `Pedido #${pedido.id} · ${hora} · ${emReais(pedido.totalCentavos)}`);
@@ -50,7 +51,7 @@ function desenharPedidosRecentes(pedidos) {
     const acoes = criarElemento('div', 'botoes');
     // Temporário: o "Ver nota" só aparece se js/ver-nota-temporario.js estiver carregado.
     if (typeof abrirNotaTemporaria === 'function') {
-      acoes.append(criarBotao('Ver nota', 'btn-neutro', () => abrirNotaTemporaria(pedido.id), 'Mostra como o papel vai sair (prévia)'));
+      acoes.append(criarBotao('Ver comanda', 'btn-neutro', () => abrirNotaTemporaria(pedido.id), 'Abrir a prévia da comanda'));
     }
     if (!cancelado) {
       acoes.append(criarBotao('Reimprimir', 'btn-reimprimir', (botao) => reimprimir(pedido.id, botao)));
@@ -66,7 +67,10 @@ async function reimprimir(idDoPedido, botao) {
   botao.disabled = true;
   try {
     const dados = await falarComServidor(`/api/pedidos/${idDoPedido}/imprimir`, { method: 'POST' });
-    mostrarMensagem(dados.mensagem, dados.impresso ? 'sucesso' : 'aviso');
+    const mensagem = dados.impresso && demonstracao && !dados.aviso
+      ? `Reimpressão do pedido #${idDoPedido} simulada.`
+      : dados.aviso || dados.mensagem;
+    mostrarMensagem(mensagem, dados.impresso && !dados.aviso ? 'sucesso' : 'aviso');
     carregarPedidosRecentes();
   } catch (erro) {
     mostrarFalha(erro, `Falha ao reimprimir o pedido #${idDoPedido}`);
@@ -78,7 +82,7 @@ async function reimprimir(idDoPedido, botao) {
 // O cliente desistiu de um pedido que já estava registrado. Perguntamos antes de
 // cancelar, porque não existe "desfazer".
 async function cancelarPedido(pedido, botao) {
-  const jaImpresso = pedido.status === 'impresso';
+  const jaImpresso = pedido.status === 'impresso' && !demonstracao;
   const aviso = `Cancelar o pedido #${pedido.id}${pedido.mesa ? ` da mesa ${pedido.mesa}` : ''} (${emReais(pedido.totalCentavos)})?`
     + (jaImpresso ? '\n\nO papel JÁ FOI IMPRESSO: depois de cancelar, avise a cozinha.' : '');
   if (!confirm(aviso)) return;
@@ -86,7 +90,8 @@ async function cancelarPedido(pedido, botao) {
   botao.disabled = true;
   try {
     const dados = await falarComServidor(`/api/pedidos/${pedido.id}/cancelar`, { method: 'POST' });
-    mostrarMensagem(dados.mensagem, dados.jaFoiImpresso ? 'aviso' : 'sucesso');
+    mostrarMensagem(demonstracao ? `Pedido #${pedido.id} cancelado.` : dados.mensagem,
+      dados.jaFoiImpresso && !demonstracao ? 'aviso' : 'sucesso');
   } catch (erro) {
     mostrarFalha(erro, `Pedido #${pedido.id} NÃO foi cancelado`);
   } finally {

@@ -15,7 +15,7 @@ test('prévia mostra título grande e centralizado, observação em negrito, ace
   assert.match(html, /Pão&nbsp;&lt;b&gt;/, 'acento correto e HTML do usuário escapado');
   assert.match(html, /transform:scaleY[^>]*>1x&nbsp;Pão/, 'altura dupla aparece na prévia');
   assert.match(html, /class="corte"/);
-  assert.match(html, /PRÉVIA TEMPORÁRIA/);
+  assert.match(html, /Prévia da comanda/);
 });
 
 test('rota /previa-nota/:id devolve HTML do pedido e 404 se não existir', async () => {

@@ -7,15 +7,23 @@ const { criarConsultas } = require('./banco-de-dados/consultas');
 const { rotasCardapio } = require('./rotas/cardapio');
 const { rotasPedidos } = require('./rotas/pedidos');
 const { rotasPreviaTemporaria } = require('./rotas/previa-temporaria'); // temporário: prévia da nota
+const { mostrarAcessoCelular } = require('./rotas/acesso-celular');
 const { registrarErro } = require('./registro-de-erros');
 
-function criarApp({ db, impressora }) {
+function criarApp({ db, impressora, demonstracao = false }) {
   const app = express(); // No Express 5, erro em rota async já cai no tratador lá embaixo
   const consultas = criarConsultas(db);
 
+  app.get('/api/saude', (_req, res) => {
+    res.set('Cache-Control', 'no-store').json({ aplicativo: 'comandas', demonstracao });
+  });
   app.use(express.json({ limit: '50kb' }));
   app.use(express.static(path.join(__dirname, '..', 'pagina-web')));
 
+  app.get('/api/configuracao', (_req, res) => {
+    res.json({ demonstracao });
+  });
+  app.get('/api/acesso-celular', mostrarAcessoCelular);
   app.use('/api/cardapio', rotasCardapio(consultas));
   app.use('/api/pedidos', rotasPedidos(consultas, impressora));
   app.use('/previa-nota', rotasPreviaTemporaria(consultas)); // temporário: prévia da nota

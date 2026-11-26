@@ -1,10 +1,23 @@
-// Temporário: o botão "Ver nota", que mostra o recibo na tela enquanto não há impressora.
+// Prévia da comanda na própria tela de pedidos.
 // Para remover, apague este arquivo e a <script> dele no index.html. O botão
 // desaparece sozinho.
 
 function abrirNotaTemporaria(idDoPedido) {
-  const janela = window.open(`/previa-nota/${idDoPedido}`, '_blank');
-  if (!janela) {
-    mostrarMensagem('O navegador bloqueou a janela da nota. Permita pop-ups para este endereço e clique em "Ver nota" de novo.', 'aviso');
-  }
+  const dialogo = criarElemento('dialog', 'dialogo-comanda');
+  dialogo.setAttribute('aria-labelledby', 'titulo-comanda');
+  const titulo = criarElemento('h2', '', `Comanda #${idDoPedido}`);
+  titulo.id = 'titulo-comanda';
+  const fechar = criarElemento('button', 'btn btn-neutro', 'Fechar');
+  fechar.autofocus = true;
+  fechar.addEventListener('click', () => dialogo.close());
+  const topo = criarElemento('div', 'dialogo-comanda-topo');
+  topo.append(titulo, fechar);
+
+  const previa = criarElemento('iframe');
+  previa.title = `Prévia da comanda #${idDoPedido}`;
+  previa.src = `/previa-nota/${idDoPedido}`;
+  dialogo.append(topo, previa);
+  dialogo.addEventListener('close', () => dialogo.remove(), { once: true });
+  document.body.append(dialogo);
+  dialogo.showModal();
 }

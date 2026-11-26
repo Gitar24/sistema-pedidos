@@ -7,6 +7,7 @@ async function carregarCardapio() {
     const dados = await falarComServidor('/api/cardapio');
     itensDoCardapio = dados.itens;
     desenharCardapio();
+    document.getElementById('botao-exemplo').disabled = itensDoCardapio.length === 0;
   } catch (erro) {
     mostrarFalha(erro, 'Não foi possível carregar o cardápio');
   }

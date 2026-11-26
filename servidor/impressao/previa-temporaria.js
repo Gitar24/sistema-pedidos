@@ -78,14 +78,15 @@ function gerarPaginaDaNota(bytes, { numeroDoPedido, colunas }) {
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nota do pedido #${numeroDoPedido}</title>
 <style>
-  body { background: #d8d8d8; font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
-  .aviso { max-width: 60ch; margin: 0 auto 1rem; background: #fff1c9; color: #6b4e00; padding: .6rem .8rem; border-radius: 4px; font-size: .85rem; }
-  .papel { width: ${colunas}ch; max-width: 100%; margin: 0 auto; background: #fff; padding: 1rem 0.8ch; box-shadow: 0 2px 8px #0005;
-           font-family: "DejaVu Sans Mono", Consolas, "Courier New", monospace; font-size: min(15px, 3.2vw); line-height: 1.3; overflow-x: auto; }
+  body { background: #edf1f6; color: #1f2933; font-family: system-ui, sans-serif; margin: 0; padding: 1rem; }
+  .aviso { margin: 0 auto 1rem; color: #3b4f69; text-align: center; font-size: .85rem; }
+  .papel { width: ${colunas}ch; box-sizing: content-box; max-width: calc(100% - 2ch); margin: 0 auto;
+           background: #fff; padding: 1rem 0.8ch; box-shadow: 0 3px 12px #142e4826;
+           font-family: "DejaVu Sans Mono", Consolas, "Courier New", monospace; font-size: min(15px, 3vw); line-height: 1.3; overflow-x: auto; }
   .linha { white-space: pre; }
   .corte { margin: .6rem 0 0; text-align: center; color: #999; font-size: .75em; white-space: nowrap; }
 </style></head><body>
-<div class="aviso">PRÉVIA TEMPORÁRIA: aproximação do papel de ${colunas} colunas. A fonte e o espaçamento reais dependem do modelo da impressora.</div>
+<p class="aviso">Prévia da comanda. A aparência no papel depende da impressora.</p>
 <div class="papel">
 ${html}
 </div></body></html>`;

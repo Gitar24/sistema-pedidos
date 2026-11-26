@@ -9,8 +9,12 @@
 </head>
 <body>
   <header>
-    <h1>Comandas</h1>
-    <span id="estado-servidor" class="estado-servidor" title="Conexão com o servidor">Conectando...</span>
+    <div class="cabecalho">
+      <h1>Comandas</h1>
+      <span id="selo-demo" class="selo-demo oculto">Demonstração</span>
+      <span id="estado-servidor" class="estado-servidor" title="Conexão com o servidor">Conectando...</span>
+      <button id="abrir-no-celular" type="button" class="btn btn-abrir-celular" aria-haspopup="dialog">Abrir no celular</button>
+    </div>
   </header>
 
   <!-- Faixa de aviso (sucesso, aviso, erro ou conexão). Fica fixa no topo e dá para fechar. -->
@@ -32,35 +36,49 @@
   <main>
     <!-- Aba 1: mesa, itens e envio, de cima para baixo -->
     <div class="painel" id="painel-novo" role="tabpanel" aria-labelledby="aba-novo">
-      <section class="cartao">
-        <label class="campo-mesa" for="mesa">Mesa</label>
-        <input id="mesa" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Número da mesa">
+      <section id="inicio-demo" class="cartao inicio-demo oculto" aria-labelledby="titulo-demo">
+        <div>
+          <h2 id="titulo-demo">Experimente um pedido</h2>
+          <p>Use o cardápio de exemplo e veja a comanda na tela. A impressão é simulada.</p>
+        </div>
+        <button id="botao-exemplo" class="btn btn-neutro" disabled>Preencher pedido de exemplo</button>
       </section>
 
-      <section class="cartao" id="cartao-cardapio">
-        <h2>Cardápio</h2>
-        <ul id="lista-cardapio" class="lista"></ul>
-        <p id="cardapio-vazio" class="discreto oculto">Nenhum item no cardápio.</p>
-      </section>
+      <div class="montagem-pedido">
+        <div id="mesa-e-cardapio">
+          <section class="cartao">
+            <label class="campo-mesa" for="mesa">Mesa</label>
+            <input id="mesa" maxlength="12" inputmode="numeric" autocomplete="off" placeholder="Número da mesa">
+          </section>
 
-      <section class="cartao" id="cartao-pedido">
-        <h2>Pedido</h2>
-        <ul id="lista-pedido" class="lista"></ul>
-        <p id="pedido-vazio" class="discreto">Toque em "Adicionar" no cardápio.</p>
-        <div class="total-linha"><span>Total</span><strong id="total-pedido">R$ 0,00</strong></div>
-        <button id="botao-limpar" class="btn btn-neutro" disabled>Limpar pedido</button>
-      </section>
+          <section class="cartao" id="cartao-cardapio">
+            <h2>Cardápio</h2>
+            <ul id="lista-cardapio" class="lista"></ul>
+            <p id="cardapio-vazio" class="discreto oculto">Nenhum item no cardápio.</p>
+          </section>
+        </div>
 
-      <!-- Fica presa no pé da tela, ao alcance do polegar -->
-      <div class="barra-enviar">
-        <button id="botao-registrar" class="btn btn-confirmar" disabled>Enviar para a cozinha</button>
+        <section class="cartao" id="cartao-pedido" aria-labelledby="titulo-pedido">
+          <h2 id="titulo-pedido" tabindex="-1">Pedido</h2>
+          <ul id="lista-pedido" class="lista"></ul>
+          <p id="pedido-vazio" class="discreto">Toque em "Adicionar" no cardápio.</p>
+          <div class="total-linha"><span>Total</span><strong id="total-pedido">R$ 0,00</strong></div>
+          <button id="botao-limpar" class="btn btn-neutro" disabled>Limpar pedido</button>
+        </section>
+
+        <div class="barra-enviar">
+          <button id="botao-registrar" class="btn btn-confirmar" disabled>Enviar para a cozinha</button>
+        </div>
       </div>
     </div>
 
     <!-- Aba 2: histórico, reimprimir e cancelar -->
     <div class="painel oculto" id="painel-recentes" role="tabpanel" aria-labelledby="aba-recentes">
       <section class="cartao">
-        <button id="botao-atualizar" class="btn btn-neutro">Atualizar lista</button>
+        <div class="cabecalho-pedidos">
+          <h2>Pedidos recentes</h2>
+          <button id="botao-atualizar" class="btn btn-neutro">Atualizar lista</button>
+        </div>
         <ul id="lista-pedidos" class="lista"></ul>
         <p id="pedidos-vazio" class="discreto oculto">Nenhum pedido ainda.</p>
       </section>
@@ -79,6 +97,27 @@
     </div>
   </main>
 
+  <dialog id="acesso-celular" class="dialogo-celular" aria-labelledby="titulo-acesso-celular" aria-describedby="instrucao-acesso-celular">
+    <div class="dialogo-celular-topo">
+      <h2 id="titulo-acesso-celular">Comandas</h2>
+      <form method="dialog">
+        <button class="btn btn-neutro" autofocus>Fechar</button>
+      </form>
+    </div>
+    <div class="dialogo-celular-conteudo">
+      <p id="instrucao-acesso-celular">Conecte ao mesmo Wi‑Fi e escaneie com a câmera.</p>
+      <p id="estado-acesso-celular" class="discreto" role="status"></p>
+      <div id="dados-acesso-celular" class="dados-acesso-celular oculto">
+        <img id="qr-acesso-celular" width="256" height="256" alt="QR Code para abrir Comandas no celular">
+        <a id="endereco-acesso-celular"></a>
+        <label id="escolha-acesso-celular" class="oculto">
+          Endereço de rede
+          <select id="opcoes-acesso-celular"></select>
+        </label>
+      </div>
+    </div>
+  </dialog>
+
   <!-- A ordem importa: ferramentas vem primeiro e iniciar-pagina por último -->
   <script src="js/ferramentas.js"></script>
   <script src="js/cardapio.js"></script>
@@ -87,6 +126,7 @@
   <script src="js/cadastro-de-item.js"></script>
   <script src="js/abas.js"></script>
   <script src="js/ver-nota-temporario.js"></script> <!-- temporário -->
+  <script src="js/acesso-celular.js"></script>
   <script src="js/iniciar-pagina.js"></script>
 </body>
 </html>

@@ -4,6 +4,23 @@ Um computador fixo faz o papel de **servidor**. O garçom abre a página no nave
 celular, ligado no Wi-Fi do estabelecimento, e cada pedido registrado imprime uma comanda
 (no padrão ESC/POS) com a mesa e os itens. Não precisa de internet para funcionar no dia a dia.
 
+Para instalar pelo menu de aplicativos, veja o [guia do Windows e Linux](empacotamento/GUIA.md).
+Para gerar os instaladores, veja [como empacotar o projeto](empacotamento/README.md).
+
+## Apresentar a um cliente
+
+Com as dependências instaladas, rode `npm run demo` e abra **http://localhost:3001**.
+Para apresentar no celular, conecte-o ao mesmo Wi-Fi e abra o endereço de rede exibido no terminal.
+
+1. Em **Novo pedido**, clique em **Preencher pedido de exemplo** para carregar a mesa 7 com
+   dois lanches e um suco. Um dos lanches tem a observação **Sem cebola**.
+2. Clique em **Enviar para a cozinha**. A prévia da comanda abre na própria página.
+3. Feche a prévia para mostrar o pedido em **Pedidos**. Use **Ver comanda** para abrir
+   a prévia de novo e, se quiser mostrar o cancelamento, use **Cancelar**.
+
+A demonstração começa com cardápio de exemplo, usa um banco em memória e simula a impressão.
+Os pedidos e itens cadastrados durante a apresentação somem ao reiniciar a demonstração.
+
 ## Mapa das pastas
 
 ```
@@ -52,7 +69,8 @@ Na primeira vez, o banco é criado já com um **cardápio de exemplo**.
 
 1. Conecte o celular no **mesmo Wi-Fi** do computador servidor (não pode ser a rede de visitantes
    com isolamento entre aparelhos).
-2. Abra no navegador o endereço que apareceu no terminal, com o `http://` na frente.
+2. No computador, abra a página de Comandas e clique em **Abrir no celular**. Escaneie com a câmera
+   o QR Code que aparece. Você também pode digitar no navegador o endereço exibido abaixo do QR Code.
 3. Dica: use "Adicionar à tela inicial" para o garçom abrir com um toque.
 
 Se não abrir, libere a porta 3000 no firewall do servidor. Fixe o IP do servidor no roteador,
@@ -71,7 +89,7 @@ Se a conexão cair durante o envio, a tela não confirma nada. Antes de enviar d
 ## As três abas
 
 - **Novo pedido:** mesa, cardápio com preços e envio. Aqui não existe botão de cancelar nem de reimprimir.
-- **Pedidos:** tem o Ver nota, o Reimprimir e o Cancelar. A bolinha vermelha na aba diz quantos
+- **Pedidos:** tem o Ver comanda, o Reimprimir e o Cancelar. A bolinha vermelha na aba diz quantos
   pedidos ainda **não foram impressos**.
 - **Cadastrar item:** coloca um item novo no cardápio.
 
@@ -97,7 +115,7 @@ cancela e cinza é neutro. Para trocar as cores, mexa só no bloco `:root` no to
 
 ## Ver a nota sem impressora (temporário)
 
-Na aba "Pedidos", o botão **Ver nota** abre o recibo do jeito que ele sairia no papel (título
+Na aba "Pedidos", o botão **Ver comanda** abre uma prévia do recibo (título
 centralizado, negrito, letra grande, linha de corte). Dá para abrir direto também, em
 `http://IP-DO-SERVIDOR:3000/previa-nota/NUMERO`. É só uma aproximação visual e nada é impresso.
 Quando a impressora chegar, apague os arquivos listados no topo de

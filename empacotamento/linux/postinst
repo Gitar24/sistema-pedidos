@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    deb-systemd-helper enable comandas.socket comandas.service >/dev/null
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload
+        if ! deb-systemd-invoke start comandas.socket comandas.service; then
+            printf '%s\n' 'Comandas foi instalado, mas o serviço não iniciou. Veja /var/log/comandas/erros.log e o Jornal do sistema.' >&2
+        fi
+    fi
+fi

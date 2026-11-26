@@ -1,0 +1,23 @@
+[Unit]
+Description=Servidor local Comandas
+Requires=comandas.socket
+After=comandas.socket
+
+[Service]
+Type=exec
+DynamicUser=yes
+StateDirectory=comandas
+LogsDirectory=comandas
+EnvironmentFile=/etc/comandas/impressora.env
+Environment=PORTA=3000 ARQUIVO_BANCO=/var/lib/comandas/pedidos.db ARQUIVO_LOG=/var/log/comandas/erros.log IMPRESSORA_PASTA_SIMULACAO=/var/lib/comandas/impressoes
+ExecStart=/opt/comandas/node /opt/comandas/servidor/iniciar.js
+WorkingDirectory=/opt/comandas
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

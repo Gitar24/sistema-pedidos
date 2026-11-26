@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Comandas
+Comment=Pedidos para a cozinha
+Exec=/opt/comandas/comandas
+Icon=comandas
+Terminal=false
+Categories=Office;
+Actions=Demo;
+
+[Desktop Action Demo]
+Name=Abrir demonstração
+Exec=/opt/comandas/comandas demo

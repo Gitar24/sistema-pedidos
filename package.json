@@ -10,10 +10,12 @@
   "scripts": {
     "start": "node servidor/iniciar.js",
     "iniciar": "node servidor/iniciar.js",
+    "demo": "node servidor/iniciar.js --demo",
     "test": "node --test \"testes/*.test.js\"",
     "testar": "node --test \"testes/*.test.js\""
   },
   "dependencies": {
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "qrcode": "^1.5.4"
   }
 }
