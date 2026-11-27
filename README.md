@@ -4,7 +4,19 @@ Um computador fixo faz o papel de **servidor**. O garçom abre a página no nave
 celular, ligado no Wi-Fi do estabelecimento, e cada pedido registrado imprime uma comanda
 (no padrão ESC/POS) com a mesa e os itens. Não precisa de internet para funcionar no dia a dia.
 
-Para instalar pelo menu de aplicativos, veja o [guia do Windows e Linux](empacotamento/GUIA.md).
+## Baixar e instalar
+
+Abra a [página da versão mais recente](../../releases/latest) e baixe o arquivo do seu sistema:
+
+| Sistema | Arquivo | Como instalar |
+|---|---|---|
+| Windows 10 ou 11, 64 bits | `Comandas-…-x64.exe` | Dois cliques e autorize. Se aparecer "O Windows protegeu o computador", clique em **Mais informações** e **Executar assim mesmo**. |
+| Debian, Ubuntu e derivados, 64 bits | `comandas_…_amd64.deb` | Dois cliques e **Instalar**. |
+
+Depois, abra **Comandas** no menu de aplicativos. Não é preciso instalar o Node.js.
+Detalhes no [guia do Windows e Linux](empacotamento/GUIA.md).
+
+O restante desta página é para quem vai rodar ou alterar o código.
 Para gerar os instaladores, veja [como empacotar o projeto](empacotamento/README.md).
 
 ## Apresentar a um cliente

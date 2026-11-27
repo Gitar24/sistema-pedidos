@@ -1,5 +1,21 @@
 # Gerar os instaladores do Comandas
 
+## Publicar uma versão pelo GitHub
+
+O arquivo `.github/workflows/release.yml` gera os instaladores, instala o `.deb` em um
+Ubuntu e o `.exe` em um Windows Server e, se tudo passar, publica um Release. Basta
+enviar uma tag no formato `vX.Y.Z`:
+
+```
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+A versão dos instaladores vem da tag. Para só gerar e testar, sem publicar, use
+**Actions → Instaladores → Run workflow**; os arquivos ficam anexados à execução.
+
+## Gerar no próprio computador
+
 Em um ambiente Linux com Node.js e npm, Go 1.22+, curl e sha256sum, execute
 `bash empacotamento/gerar.sh`. Para um único alvo, acrescente `linux` ou `windows`.
 O alvo Linux também usa `dpkg-deb`, tar e xz. O alvo Windows usa NSIS 3 e unzip.

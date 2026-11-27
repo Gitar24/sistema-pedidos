@@ -1,0 +1,97 @@
+# Gera os instaladores, testa cada um e, quando o envio é de uma tag vX.Y.Z,
+# publica os arquivos em Releases. Pela aba Actions ("Run workflow") só gera e testa.
+name: Instaladores
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gerar:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: empacotamento/launcher/go.mod
+          cache-dependency-path: empacotamento/launcher/go.sum
+      - name: Instalar o NSIS
+        run: sudo apt-get update && sudo apt-get install -y nsis
+      - name: Testes do sistema
+        run: npm ci && npm test
+      - name: Usar a versão da tag
+        if: github.ref_type == 'tag'
+        run: echo "VERSAO_COMANDAS=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Gerar os instaladores
+        run: bash empacotamento/gerar.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instaladores
+          path: dist/
+          if-no-files-found: error
+
+  testar-linux:
+    needs: gerar
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: instaladores
+          path: dist
+      - name: Instalar o .deb
+        run: sudo apt-get update && sudo apt-get install -y ./dist/*.deb
+      - name: Conferir se o serviço responde
+        run: curl --fail --retry 20 --retry-delay 1 --retry-all-errors http://127.0.0.1:3000/api/saude | grep -q comandas
+      - name: Remover
+        run: sudo apt-get remove -y comandas
+
+  # O executor é um Windows Server: não substitui o teste em um Windows 10 ou 11.
+  testar-windows:
+    needs: gerar
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: instaladores
+          path: dist
+      - name: Instalar, conferir e desinstalar
+        shell: pwsh
+        run: |
+          $instalador = Get-Item dist/Comandas-*-x64.exe
+          $processo = Start-Process $instalador.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($processo.ExitCode -ne 0) { throw "A instalação terminou com código $($processo.ExitCode)" }
+
+          $estado = Invoke-RestMethod http://127.0.0.1:3000/api/saude -MaximumRetryCount 20 -RetryIntervalSec 1
+          if ($estado.aplicativo -ne 'comandas') { throw 'A porta 3000 não respondeu como Comandas' }
+
+          $pasta = "$env:ProgramFiles\Comandas"
+          # "_?=" faz o desinstalador do NSIS esperar até terminar.
+          $processo = Start-Process "$pasta\Desinstalar.exe" -ArgumentList "/S _?=$pasta" -Wait -PassThru
+          if ($processo.ExitCode -ne 0) { throw "A desinstalação terminou com código $($processo.ExitCode)" }
+          if (Get-Service Comandas -ErrorAction SilentlyContinue) { throw 'O serviço não foi removido' }
+
+  publicar:
+    if: github.ref_type == 'tag'
+    needs: [testar-linux, testar-windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: instaladores
+          path: dist
+      - name: Criar o Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/*
+          --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+          --title "Comandas ${GITHUB_REF_NAME#v}"
